@@ -102,11 +102,6 @@
                             <span style="color: var(--warning);">Debes esperar {{ minutes_to_wait|round(1) }} minutos más.</span>
                         {% endif %}
                     </p>
-                    {% if model_age_warning and last_trained_time is not string %}
-                        <p class="warning-message">
-                            ⚠️ El modelo tiene más de 30 minutos. Considera re-entrenar para mejor precisión.
-                        </p>
-                    {% endif %}
                 {% else %}
                     <p>El modelo aún no ha sido entrenado.</p>
                     <p>Por favor crea un dataset primero usando la sección de "Crear Dataset" y luego entrena el modelo.</p>

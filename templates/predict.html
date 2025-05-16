@@ -303,8 +303,6 @@
             </p>
             {% endif %}
             <p>
-                {% if model_age_warning and last_trained_time_obj %}
-                    <span class="warning-message">⚠️ El modelo tiene más de 30 minutos. Considera re-entrenar para mejor precisión.</span>
                 {% elif model_exists and not last_trained_time_obj %}
                      <span class="warning-message">⚠️ No se conoce la fecha del último entrenamiento. Considera re-entrenar.</span>
                 {% endif %}
