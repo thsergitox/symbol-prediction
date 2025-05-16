@@ -303,7 +303,7 @@
             </p>
             {% endif %}
             <p>
-                {% elif model_exists and not last_trained_time_obj %}
+                {% if model_exists and not last_trained_time_obj %}
                      <span class="warning-message">⚠️ No se conoce la fecha del último entrenamiento. Considera re-entrenar.</span>
                 {% endif %}
             </p>

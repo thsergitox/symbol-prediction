@@ -269,10 +269,6 @@ def train_page():
         total_images += count
     print(f"[TRAIN] Dataset stats: {dataset_stats}, Total images: {total_images}")
     
-    model_age_warning = False
-    if last_trained_time and (datetime.now() - last_trained_time > timedelta(minutes=30)): # General age warning
-        model_age_warning = True
-        print("[TRAIN] Model is older than 30 minutes.")
         
     return render_template('train.html', 
                         stats=dataset_stats, 
@@ -280,7 +276,6 @@ def train_page():
                         message=message, 
                         last_trained_time=last_trained_time, 
                         last_accuracy=last_accuracy,
-                        model_age_warning=model_age_warning,
                         can_train_now=can_train_now,
                         minutes_to_wait=minutes_to_wait if minutes_to_wait is not None else MIN_TRAINING_INTERVAL,
                         min_training_interval=MIN_TRAINING_INTERVAL)
@@ -311,7 +306,6 @@ def predict_page():
 
 
     last_trained_time, last_accuracy = get_last_training_info()
-    model_age_warning = False
     model_exists = os.path.exists(MODEL_FILENAME)
     
     last_trained_display = "No entrenado. Por favor, entrena el modelo primero." # Default message
@@ -319,12 +313,8 @@ def predict_page():
     if model_exists:
         if last_trained_time:
             last_trained_display = last_trained_time # Will be formatted in template if datetime
-            if (datetime.now() - last_trained_time > timedelta(minutes=30)):
-                model_age_warning = True
-                print("[PREDICT] Model is older than 30 minutes.")
         else: # Model file exists, but no training time record
             last_trained_display = "Desconocido (modelo existe, pero no hay registro de entrenamiento)"
-            model_age_warning = True # Treat as potentially old if no training date
             print("[PREDICT] Model exists but no training time record found.")
     else:
         print("[PREDICT] No model found.")
@@ -343,7 +333,6 @@ def predict_page():
                          last_trained_time_obj=last_trained_time, 
                          last_trained_display=last_trained_display, 
                          last_accuracy=last_accuracy, 
-                         model_age_warning=model_age_warning, 
                          model_exists=model_exists,
                          )
 
