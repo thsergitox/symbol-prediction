@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predicción de Símbolos - Inicio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
+            <h1>Reconocimiento de Símbolos</h1>
+            <p>Un sistema de inteligencia artificial para crear, entrenar y predecir símbolos griegos</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="active-nav">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEwLDIwVjE0SDR2Nkg5TTExLDIwaDRsMy42LTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDExLDIwTTEyLDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
+                Inicio
+            </a>
+            <a href="{{ url_for('create_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
+                Crear Dataset
+            </a>
+            <a href="{{ url_for('train_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">
+                Entrenar Modelo
+            </a>
+            <a href="{{ url_for('predict_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir Símbolo">
+                Predecir Símbolo
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <h2>Bienvenido al Sistema de Predicción de Símbolos</h2>
+        <p>Este sistema te permite crear datasets de símbolos griegos, entrenar un modelo de inteligencia artificial y predecir símbolos dibujados a mano.</p>
+        
+        <div class="cards-container">
+            <div class="card">
+                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik0xMTAgODBMMTQwIDUwTDE3MCA4MEgxNTVWMTEwSDEyNVY4MEgxMTBaIi8+PHRleHQgeD0iNTAiIHk9IjExMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzgwMDAyMCI+zrE8L3RleHQ+PHRleHQgeD0iMTIwIiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiM2YTBkM2EiPs64PC90ZXh0Pjx0ZXh0IHg9IjE5MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjYTAzYTRhIj7OtTwvdGV4dD48L3N2Zz4=')"></div>
+                <div class="card-content">
+                    <h3>Crear Dataset</h3>
+                    <p>Dibuja símbolos griegos (α, β, ε) para crear un conjunto de datos de entrenamiento para el modelo.</p>
+                    <a href="{{ url_for('create_dataset_page') }}" class="action-btn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear">
+                        Ir a Crear Dataset
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik04MCA3MEgyMDBWOTBIODBWNzBaTTgwIDEwMEgxNjBWMTEwSDgwVjEwMFpNODAgNTBIMTYwVjYwSDgwVjUwWk0xODAgNTBIMjAwVjYwSDE4MFY1MFpNMTgwIDEwMEgyMDBWMTEwSDE4MFYxMDBaTTExMCAxMTVIMTcwVjEzMEgxMTBWMTE1WiIvPjwvc3ZnPg==')"></div>
+                <div class="card-content">
+                    <h3>Entrenar Modelo</h3>
+                    <p>Entrena un modelo de aprendizaje automático usando las imágenes recopiladas en el dataset.</p>
+                    <a href="{{ url_for('train_page') }}" class="action-btn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar">
+                        Ir a Entrenar Modelo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxjaXJjbGUgY3g9IjE0MCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjODAwMDIwIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNDAiIHk9IjkwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNTAiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODAwMDIwIj7OtTwvdGV4dD48L3N2Zz4=')"></div>
+                <div class="card-content">
+                    <h3>Predecir Símbolo</h3>
+                    <p>Dibuja un símbolo y el modelo entrenado intentará reconocerlo como α, β o ε.</p>
+                    <a href="{{ url_for('predict_page') }}" class="action-btn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir">
+                        Ir a Predecir Símbolo
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <h3>Instrucciones de Uso</h3>
+        <p>Para obtener los mejores resultados, sigue estos pasos:</p>
+        <ol style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li>Crea un dataset dibujando múltiples ejemplos de cada símbolo (α, β, ε).</li>
+            <li>Entrena el modelo usando el dataset creado.</li>
+            <li>Dibuja un símbolo en la página de predicción para probar el modelo.</li>
+        </ol>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Proyecto de Reconocimiento de Símbolos | Universidad Nacional de Ingeniería</p>
+    </footer>
+</body>
+</html> 

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predecir Símbolo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        .prediction-bars {
+            margin-top: 20px;
+        }
+        
+        .prediction-bar-container {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        
+        .prediction-bar-container .symbol-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .prediction-bar-container .symbol {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .prediction-bar-container .probability {
+            font-weight: 500;
+        }
+        
+        .prediction-bar-outer {
+            height: 12px;
+            background: #eee;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .prediction-bar-inner {
+            height: 100%;
+            transition: width 0.5s ease-out;
+            border-radius: 6px;
+        }
+        
+        .prediction-bar-primary {
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+        }
+        
+        .prediction-bar-secondary {
+            background: linear-gradient(90deg, #c6c6c6, #a0a0a0);
+        }
+        
+        .top-prediction {
+            border: 2px solid var(--primary);
+            background: rgba(128, 0, 32, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        /* Clases de ancho para las barras de progreso */
+        .w-0 { width: 0%; }
+        .w-10 { width: 10%; }
+        .w-20 { width: 20%; }
+        .w-30 { width: 30%; }
+        .w-40 { width: 40%; }
+        .w-50 { width: 50%; }
+        .w-60 { width: 60%; }
+        .w-70 { width: 70%; }
+        .w-80 { width: 80%; }
+        .w-90 { width: 90%; }
+        .w-100 { width: 100%; }
+    </style>
+    <script>
+        var mousePressed = false;
+        var lastX, lastY;
+        var ctx;
+
+        function InitThis() {
+            ctx = document.getElementById('myCanvas').getContext("2d");
+
+            $('#myCanvas').mousedown(function (e) {
+                mousePressed = true;
+                Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+            });
+
+            $('#myCanvas').mousemove(function (e) {
+                if (mousePressed) {
+                    Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
+                }
+            });
+
+            $('#myCanvas').mouseup(function (e) {
+                mousePressed = false;
+            });
+
+            $('#myCanvas').mouseleave(function (e) {
+                mousePressed = false;
+            });
+
+            // Load last drawn image onto the main canvas if available
+            const lastCanvasImageURL = "{{ last_predicted_image_url if last_predicted_image_url else '' }}";
+            if (lastCanvasImageURL) {
+                console.log("[Canvas] Attempting to load last drawn image from URL:", lastCanvasImageURL.substring(0,50) + "...");
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear canvas before drawing
+                    ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height); // Draw image scaled to canvas size
+                    console.log("[Canvas] Last drawn image loaded onto canvas.");
+                };
+                img.onerror = function() {
+                    console.error("[Canvas] Failed to load last drawn image.");
+                };
+                img.src = lastCanvasImageURL;
+            }
+        }
+
+        function Draw(x, y, isDown) {
+            if (isDown) {
+                ctx.beginPath();
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 11;
+                ctx.lineJoin = "round";
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.closePath();
+                ctx.stroke();
+            }
+            lastX = x; lastY = y;
+        }
+
+        function clearArea() {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            var predResults = document.getElementById('predictionResult');
+            if (predResults) {
+                predResults.style.display = 'none';
+            }
+        }
+
+        function prepareImgAndSubmit() {
+            var canvas = document.getElementById('myCanvas');
+            document.getElementById('myImage').value = canvas.toDataURL();
+            if (!document.getElementById('myImage').value || document.getElementById('myImage').value === "data:,") {
+                alert("Por favor dibuje un símbolo antes de predecir.");
+                return false; 
+            }
+            return true; 
+        }
+        
+        function getWidthClass(probability) {
+            var percent = Math.round(probability * 100);
+            var roundedPercent = Math.max(0, Math.min(100, Math.round(percent / 10) * 10));
+            return 'w-' + roundedPercent;
+        }
+    </script>
+</head>
+<body onload="InitThis();">
+    <header>
+        <div class="header-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
+            <h1>Predecir Símbolo</h1>
+            <p>Dibuja un símbolo y el modelo intentará reconocerlo</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEwLDIwVjE四季SDR2Nkg5TTExLDIwaDRsMy42LTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDExLDIwTTEyLDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
+                Inicio
+            </a>
+            <a href="{{ url_for('create_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
+                Crear Dataset
+            </a>
+            <a href="{{ url_for('train_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">
+                Entrenar Modelo
+            </a>
+            <a href="{{ url_for('predict_page') }}" class="active-nav">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir Símbolo">
+                Predecir Símbolo
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <h2>Predicción de Símbolos</h2>
+
+        {% if not model_exists %}
+            <div class="message warning-message">
+                <strong>¡Atención!</strong> El modelo no ha sido entrenado. Por favor, 
+                <a href="{{ url_for('train_page') }}">entrene el modelo</a> primero.
+            </div>
+        {% else %}
+            <p>Dibuja un símbolo (α, β, o ε) en el recuadro y haz clic en "Predecir":</p>
+            
+            <div class="canvas-container">
+                <canvas id="myCanvas" width="300" height="300"></canvas>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="clearArea();return false;" class="action-btn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDRIMTVWM0g5VjRINVY2SDE5TTYsMTlBMiwyIDAgMCwwIDgsMjFIMTZBMiwyIDAgMCwwIDE4LDE5VjdINlYxOVoiLz48L3N2Zz4=" alt="Borrar">
+                    Borrar
+                </button>
+                
+                <form method="post" action="{{ url_for('predict_page') }}" onsubmit="return prepareImgAndSubmit();">
+                    <input id="myImage" name="myImage" type="hidden" value="">
+                    <button type="submit" class="action-btn primary-btn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTE1LjUsMTRMMTYuMzYsMTAuMjdIMTMuNVY2LjVDMTMuNSw1LjQ3IDE0LDQuNSAxNS40NSw0LjVIMTYuNDRWMS4yOUMxNi40NCwxLjI5IDE1LjQ5LDEuMTIgMTQuNSwxLjEyQzEyLjQ1LDEuMTIgOS41LDMgOS41LDZWMTAuMjdIOS41VjEwLjI3SDYuNVYxNEg5LjVWMjJIMTMuNVYxNEgxNS41WiIvPjwvc3ZnPg==" alt="Predecir">
+                        Predecir
+                    </button>
+                </form>
+            </div>
+
+            {% if prediction %}
+                <div id="predictionResult" class="prediction-container">
+                    <h3>Resultado de la Predicción:</h3>
+
+                    {% if "Error" in prediction %}
+                        <p class="error-message">{{ prediction }}</p>
+                    {% else %}
+                        <div class="predicted-image-container" style="margin-bottom: 20px; text-align: center;">
+                            <p><strong>Imagen analizada:</strong></p>
+                            <img src="{{ request.form.get('myImage') }}" alt="Imagen analizada" style="max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        
+                        <div class="top-prediction">
+                            <p class="predicted-symbol">{{ prediction }}</p>
+                            <p>Mejor coincidencia con <strong>{{ "%.2f" | format(confidence * 100) }}%</strong> de confianza</p>
+                        </div>
+                        
+                        {% if all_predictions %}
+                            <h4>Todas las probabilidades:</h4>
+                            <div class="prediction-bars">
+                                {% for symbol_key, data in all_predictions.items() %}
+                                <div class="prediction-bar-container {% if data.symbol == prediction %}top-prediction-bar{% endif %}" data-symbol-key="{{ symbol_key }}">
+                                    <div class="symbol-label">
+                                        <span class="symbol">{{ data.symbol }}</span>
+                                        <span class="probability">{{ "%.2f" | format(data.probability * 100) }}%</span>
+                                    </div>
+                                    <div class="prediction-bar-outer">
+                                        <div data-probability="{{ data.probability }}" class="prediction-bar-inner {% if data.symbol == prediction %}prediction-bar-primary{% else %}prediction-bar-secondary{% endif %}"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <h3>Estado del Modelo:</h3>
+        <div style="max-width: 600px; margin: 0 auto; text-align: left; background: var(--background); padding: 16px; border-radius: 8px;">
+            <p>
+                <strong>Último entrenamiento:</strong> 
+                {% if last_trained_time_obj %}
+                    {{ last_trained_time_obj.strftime('%Y-%m-%d %H:%M:%S') }}
+                {% elif model_exists %}
+                    Desconocido (modelo existe, pero no hay registro de entrenamiento).
+                {% else %}
+                    {{ last_trained_display }} {# Should be "No entrenado..." #}
+                {% endif %}
+            </p>
+            {% if last_accuracy is not none and last_trained_time_obj %}
+            <p>
+                <strong>Precisión del modelo:</strong> {{ "%.2f" | format(last_accuracy * 100) }}%
+            </p>
+            {% endif %}
+            <p>
+                {% if model_age_warning and last_trained_time_obj %}
+                    <span class="warning-message">⚠️ El modelo tiene más de 30 minutos. Considera re-entrenar para mejor precisión.</span>
+                {% elif model_exists and not last_trained_time_obj %}
+                     <span class="warning-message">⚠️ No se conoce la fecha del último entrenamiento. Considera re-entrenar.</span>
+                {% endif %}
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Proyecto de Reconocimiento de Símbolos | Universidad Nacional de Ingeniería</p>
+    </footer>
+
+    <script>
+        // Helper function to get width class based on probability (should be available from head)
+        // function getWidthClass(probability) { ... }
+
+        // Script to render the bars after Jinja has processed everything
+        document.addEventListener('DOMContentLoaded', function() {
+            var innerBars = document.querySelectorAll('.prediction-bar-inner[data-probability]');
+            innerBars.forEach(function(bar) {
+                var prob = parseFloat(bar.dataset.probability);
+                if (!isNaN(prob)) { 
+                    var widthClass = typeof getWidthClass === 'function' ? getWidthClass(prob) : null;
+                    if (widthClass) {
+                        bar.classList.add(widthClass);
+                    } else {
+                        var percent = Math.round(prob * 100);
+                        var roundedPercent = Math.max(0, Math.min(100, Math.round(percent / 10) * 10));
+                        bar.style.width = roundedPercent + "%";
+                        if (typeof getWidthClass !== 'function') {
+                           // console.warn("getWidthClass function not found, used fallback for progress bar width.");
+                        }
+                    }
+                }
+            });
+
+            // Code to potentially load last drawn image onto the main canvas (optional)
+            // This part depends on whether you want the main canvas to re-load the drawing or just display it as an image.
+            // The current change above displays it as a static image.
+            // If you want to load it into the interactive canvas, you would do something like:
+            /*
+            const lastCanvasImageURL = "{{ last_prediction_from_session.image_data_url if last_prediction_from_session else '' }}";
+            if (lastCanvasImageURL && ctx) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = lastCanvasImageURL;
+            }
+            */
+        });
+    </script>
+</body>
+</html>
