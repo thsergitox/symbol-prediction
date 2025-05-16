@@ -3,3 +3,4 @@ numpy
 scikit-image
 scikit-learn
 joblib 
+gunicorn
