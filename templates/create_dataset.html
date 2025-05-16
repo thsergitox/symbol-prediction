@@ -14,24 +14,55 @@
         function InitThis() {
             ctx = document.getElementById('myCanvas').getContext("2d");
             setSymbolToDraw(currentSymbol); // Initialize with the default symbol
+            var canvas = $('#myCanvas'); // Cache jQuery object
 
-            $('#myCanvas').mousedown(function (e) {
+            canvas.on('mousedown', function (e) {
                 mousePressed = true;
-                Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+                Draw(e.pageX - canvas.offset().left, e.pageY - canvas.offset().top, false);
+                e.preventDefault(); // Prevent default mouse behavior
             });
 
-            $('#myCanvas').mousemove(function (e) {
+            canvas.on('mousemove', function (e) {
                 if (mousePressed) {
-                    Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
+                    Draw(e.pageX - canvas.offset().left, e.pageY - canvas.offset().top, true);
                 }
+                e.preventDefault(); // Prevent default mouse behavior
             });
 
-            $('#myCanvas').mouseup(function (e) {
+            canvas.on('mouseup', function (e) {
                 mousePressed = false;
+                e.preventDefault(); // Prevent default mouse behavior
             });
 
-            $('#myCanvas').mouseleave(function (e) {
+            canvas.on('mouseleave', function (e) {
                 mousePressed = false;
+                e.preventDefault(); // Prevent default mouse behavior
+            });
+
+            // Touch events
+            canvas.on('touchstart', function (e) {
+                mousePressed = true;
+                var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+                Draw(touch.pageX - canvas.offset().left, touch.pageY - canvas.offset().top, false);
+                e.preventDefault(); // Important to prevent scrolling on touch devices
+            });
+
+            canvas.on('touchmove', function (e) {
+                if (mousePressed) {
+                    var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+                    Draw(touch.pageX - canvas.offset().left, touch.pageY - canvas.offset().top, true);
+                }
+                e.preventDefault(); // Important to prevent scrolling on touch devices
+            });
+
+            canvas.on('touchend', function (e) {
+                mousePressed = false;
+                e.preventDefault(); // Important to prevent scrolling on touch devices
+            });
+            
+            canvas.on('touchcancel', function (e) { // Handle cases like when the touch leaves the screen
+                mousePressed = false;
+                e.preventDefault();
             });
         }
 
