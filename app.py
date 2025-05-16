@@ -16,8 +16,8 @@ app.secret_key = 'os.urandom(24)' # Added a secret key for session management
 # Configuration
 STATIC_FOLDER = os.path.join(os.getcwd(), 'static')
 TEMPLATES_FOLDER = os.path.join(os.getcwd(), 'templates')
-MODEL_FILENAME = 'modelo_simbolos.pkl'
-LAST_TRAINING_FILE = 'last_training_time.txt'
+MODEL_FILENAME = 'model/modelo_simbolos.pkl'
+LAST_TRAINING_FILE = 'db/last_training_time.txt'
 SYMBOLS = ['alpha', 'beta', 'epsilon'] # α, β, ε
 SYMBOLS_DISPLAY = {'alpha': 'α', 'beta': 'β', 'epsilon': 'ε'}
 IMAGE_DIM = (100, 100) # Standard image dimension for the model
@@ -25,8 +25,8 @@ MIN_TRAINING_INTERVAL = 5  # Minimum minutes between trainings
 
 # Ensure data directories exist
 for symbol in SYMBOLS:
-    if not os.path.exists(symbol):
-        os.makedirs(symbol)
+    if not os.path.exists('dataset/' + symbol):
+        os.makedirs('dataset/' + symbol)
         print(f"[INIT] Created directory for symbol: {symbol}")
 
 def get_last_training_info():
@@ -88,10 +88,10 @@ def train_and_save_model_adapted(model_filename=MODEL_FILENAME):
         labels = []
         for symbol_name in SYMBOLS:
             print(f"[TRAIN] Processing images for symbol {SYMBOLS_DISPLAY[symbol_name]} ({symbol_name})...")
-            filelist = glob.glob(f'{symbol_name}/*.png')
-            print(f"[TRAIN] Found {len(filelist)} images in {symbol_name}/")
+            filelist = glob.glob(f'dataset/{symbol_name}/*.png')
+            print(f"[TRAIN] Found {len(filelist)} images in dataset/{symbol_name}/")
             if not filelist:
-                print(f"[WARN] No images found in folder {symbol_name}")
+                print(f"[WARN] No images found in folder dataset/{symbol_name}")
                 continue
             for img_path in filelist:
                 try:
@@ -204,7 +204,7 @@ def upload_image():
             print(f"[ERROR] Invalid symbol specified: {symbol_to_draw}")
             return "Invalid symbol specified.", 400
         
-        symbol_folder = os.path.join(os.getcwd(), symbol_to_draw)
+        symbol_folder = os.path.join(os.getcwd(), 'dataset', symbol_to_draw)
         if not os.path.exists(symbol_folder):
              os.makedirs(symbol_folder)
              print(f"[UPLOAD] Created directory: {symbol_folder}")
@@ -264,7 +264,7 @@ def train_page():
     dataset_stats = {}
     total_images = 0
     for symbol_name in SYMBOLS:
-        count = len(glob.glob(f'{symbol_name}/*.png'))
+        count = len(glob.glob(f'dataset/{symbol_name}/*.png'))
         dataset_stats[SYMBOLS_DISPLAY[symbol_name]] = count
         total_images += count
     print(f"[TRAIN] Dataset stats: {dataset_stats}, Total images: {total_images}")
@@ -303,9 +303,9 @@ def predict_page():
                 session['last_prediction_data'] = {
                     'prediction': prediction_result,
                     'confidence': confidence_score,
-                    'all_predictions': all_predictions,
+                    'all_predictions': all_predictions, # Guardar todas las predicciones
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'image_data_url': image_data # Store the submitted canvas image
+                    'image_data_url': image_data # Guardar la imagen del canvas
                 }
                 print("[PREDICT][SESSION] Stored current prediction and image in session.")
 
