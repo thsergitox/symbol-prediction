@@ -112,7 +112,7 @@
         <div class="header-content">
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
             <h1>Crear Dataset de Símbolos</h1>
-            <p>Dibuja símbolos para entrenar el modelo de reconocimiento</p>
+            <p>Dibuja símbolos para entrenar múltiples modelos de reconocimiento (Random Forest, SVM, Redes Neuronales)</p>
         </div>
     </header>
 
@@ -125,6 +125,10 @@
             <a href="{{ url_for('create_dataset_page') }}" class="active-nav">
                 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
                 Crear Dataset
+            </a>
+            <a href="{{ url_for('view_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTIyLDMINUE0LDQgMCAwLDAgMSw3VjE3QTQsNCAwIDAsMCA1LDIxSDE5QTQsNCAwIDAsMCAyMywxN1Y7QTQsNCAwIDAsMCAyMiwzTTIxLDE3QTIsICAMCAwLDEgMTksMTlINUEyLDIgMCAwLDEgMywxN1Y3QTIsICAyIDAgMCwxIDUsNUgxOUEyLDIgMCAwLDEgMjEsN1YxN00xNi41LDEwQTEuNSwxLjUgMCAwLDAgMTUsOC41QTEuNSwxLjUgMCAwLDAgMTMuNSwxMEExLjUsMS41IDAgMCwwIDE1LDExLjVBMS41LDEuNSAwIDAsMCAxNi41LDEwTTE3LjUsOUMxOC4zMyw5IDE5LDkuNjcgMTksMTAuNUMxOSwxMS4zMyAxOC4zMywxMiAxNy41LDEyUzE2LDExLjMzIDE2LDEwLjVDMTYsOS42NyAxNi42Nyw5IDE3LjUsOU0xNi41LDE0QTEuNSwxLjUgMCAwLDAgMTUsMTIuNUExLjUsMS41IDAgMCwwIDEzLjUsMTRBMS41LDEuNSAwIDAsMCAxNSwxNS41QTEuNSwxLjUgMCAwLDAgMTYuNSwxNE0xNy41LDEzQzE4LjMzLDEzIDE5LDEzLjY3IDE5LDE0LjVDMTksMTUuMzMgMTguMzMsMTYgMTcuNSwxNlMxNiwxNS4zMyAxNiwxNC41QzE2LDEzLjY3IDE2LjY3LDEzIDE3LjUsMTNNMTIsOVY3SDVWOUgxMk0xMiwxM1YxMUg1VjEzSDEyTTEyLDE3VjE1SDVWMTdIMTJaIi8+PC9zdmc+" alt="Ver Dataset">
+                Ver Dataset
             </a>
             <a href="{{ url_for('train_page') }}">
                 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">

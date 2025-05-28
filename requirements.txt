@@ -4,3 +4,4 @@ scikit-image
 scikit-learn
 joblib 
 gunicorn
+typing-extensions

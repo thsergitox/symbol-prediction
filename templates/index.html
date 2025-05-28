@@ -16,15 +16,19 @@
     <nav>
         <div class="nav-container">
             <a href="{{ url_for('index') }}" class="active-nav">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEwLDIwVjE0SDR2Nkg5TTExLDIwaDRsMy42LTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDExLDIwTTEyLDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEw,MjBWMTQ4SDR2Nkg5TTEx,MjBoNFszLjYsLTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDEx,MjBMTE2LDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
                 Inicio
             </a>
             <a href="{{ url_for('create_dataset_page') }}">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5,MTNIMTNVTjE5SDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
                 Crear Dataset
             </a>
+            <a href="{{ url_for('view_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTIyLDMINUE0LDQgMCAwLDAgMSw3VjE3QTQsNCAwIDAsMCA1LDIxSDE5QTQsNCAwIDAsMCAyMywxN1Y3QTQsNCAwIDAsMCAyMiwzTTIxLDE3QTIsICAMCAwLDEgMTksMTlINUEyLDIgMCAwLDEgMywxN1Y3QTIsICAyIDAgMCwxIDUsNUgxOUEyLDIgMCAwLDEgMjEsN1YxN00xNi41LDEwQTEuNSwxLjUgMCAwLDAgMTUsOC41QTEuNSwxLjUgMCAwLDAgMTMuNSwxMEExLjUsMS41IDAgMCwwIDE1LDExLjVBMS41LDEuNSAwIDAsMCAxNi41LDEwTTE3LjUsOUMxOC4zMyw5IDE5LDkuNjcgMTksMTAuNUMxOSwxMS4zMyAxOC4zMywxMiAxNy41LDEyUzE2LDExLjMzIDE2LDEwLjVDMTYsOS42NyAxNi42Nyw5IDE3LjUsOU0xNi41LDE0QTEuNSwxLjUgMCAwLDAgMTUsMTIuNUExLjUsMS41IDAgMCwwIDEzLjUsMTRBMS41LDEuNSAwIDAsMCAxNSwxNS1QQTEuNSwxLjUgMCAwLDAgMTYuNSwxNE0xNy41LDEzQzE4LjMzLDEzIDE5LDEzLjY3IDE5LDE0LjVDMTksMTUuMzMgMTguMzMsMTYgMTcuNSwxNlMxNiwxNS4zMyAxNiwxNC41QzE2LDEzLjY3IDE2LjY3LDEzIDE3LjUsMTNNMTIsOVY3SDVWOUgxMk0xMiwxM1YxMUg1VjEzSDEyTTEyLDE3VjE1SDVWMTdIMTJaIi8+PC9zdmc+" alt="Ver Dataset">
+                Ver Dataset
+            </a>
             <a href="{{ url_for('train_page') }}">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEz,MTNIMTFWN00xMywxN0wxMlYxNU0xM00xMiwyQTEwLDEwIDAgMCwwIDIsMTJBMTAuOSwxMCAwIDAsMCAxMiwyMkExMCwxMCAwIDAsMCAyMiwxMkExMCwxMCAwIDAsMCAxMiwyeiIvPjwvc3ZnPg==" alt="Entrenar Modelo">
                 Entrenar Modelo
             </a>
             <a href="{{ url_for('predict_page') }}">
@@ -36,17 +40,29 @@
 
     <main>
         <h2>Bienvenido al Sistema de Predicción de Símbolos</h2>
-        <p>Este sistema te permite crear datasets de símbolos griegos, entrenar un modelo de inteligencia artificial y predecir símbolos dibujados a mano.</p>
+        <p>Este sistema te permite crear datasets de símbolos griegos, entrenar múltiples modelos de inteligencia artificial (Random Forest, SVM, Redes Neuronales) y predecir símbolos dibujados a mano.</p>
         
         <div class="cards-container">
             <div class="card">
-                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik0xMTAgODBMMTQwIDUwTDE3MCA4MEgxNTVWMTEwSDEyNVY4MEgxMTBaIi8+PHRleHQgeD0iNTAiIHk9IjExMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzgwMDAyMCI+zrE8L3RleHQ+PHRleHQgeD0iMTIwIiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiM2YTBkM2EiPs64PC90ZXh0Pjx0ZXh0IHg9IjE5MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjYTAzYTRhIj7OtTwvdGV4dD48L3N2Zz4=')"></div>
+                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik0xMSA4MEwyMCA1MEwyOSA4MEgyNFYxMTBIMTdWODBIMTFaIi8+PHRleHQgeD0iNTAiIHk9IjExMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzgwMDAyMCI+zrE8L3RleHQ+PHRleHQgeD0iMTIwIiB5PSIxMTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiM2YTBkM2EiPs64PC90ZXh0Pjx0ZXh0IHg9IjE5MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjYTAzYTRhIj7OtTwvdGV4dD48L3N2Zz4=')"></div>
                 <div class="card-content">
                     <h3>Crear Dataset</h3>
                     <p>Dibuja símbolos griegos (α, β, ε) para crear un conjunto de datos de entrenamiento para el modelo.</p>
                     <a href="{{ url_for('create_dataset_page') }}" class="action-btn">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5,MTNIMTNVTjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear">
                         Ir a Crear Dataset
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik0xMiA2MEgyNDhWODBIMTJWNjBaTTEyIDEwMEgyMDBWMTE1SDEyVjEwMFpNMTIgNDBIMjAwVjU1SDEyVjQwWk0yMTAgNDBIMjQ4VjU1SDIxMFY0MFpNMjEwIDEwMEgyNDhWMTE1SDIxMFYxMDBaTTEzMCAxMjBIMjEwVjE0MEgxMzBWMTIwWiIvPjwvc3ZnPg==')"></div>
+                <div class="card-content">
+                    <h3>Ver Dataset</h3>
+                    <p>Administra las imágenes del dataset. Ve todas las imágenes creadas y elimina las que no sean necesarias.</p>
+                    <a href="{{ url_for('view_dataset_page') }}" class="action-btn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTIyLDMINUE0LDQgMCAwLDAgMSw3VjE3QTQsNCAwIDAsMCA1LDIxSDE5QTQsNCAwIDAsMCAyMywxN1Y3QTQsNCAwIDAsMCAyMiwzTTIxLDE3QTIsICAMCAwLDEgMTksMTlINUEyLDIgMCAwLDEgMywxN1Y3QTIsICAyIDAgMCwxIDUsNUgxOUEyLDIgMCAwLDEgMjEsN1YxN00xNi41LDEwQTEuNSwxLjUgMCAwLDAgMTUsOC41QTEuNSwxLjUgMCAwLDAgMTMuNSwxMEExLjUsMS41IDAgMCwwIDE1LDExLjVBMS41LDEuNSAwIDAsMCAxNi41LDEwTTE3LjUsOUMxOC4zMyw5IDE5LDkuNjcgMTksMTAuNUMxOSwxMS4zMyAxOC4zMywxMiAxNy41LDEyUzE2LDExLjMzIDE2LDEwLjVDMTYsOS42NyAxNi42Nyw5IDE3LjUsOU0xNi41LDE0QTEuNSwxLjUgMCAwLDAgMTUsMTIuNUExLjUsMS41IDAgMCwwIDEzLjUsMTRBMS41LDEuNSAwIDAsMCAxNSwxNS1QQTEuNSwxLjUgMCAwLDAgMTYuNSwxNE0xNy41LDEzQzE4LjMzLDEzIDE5LDEzLjY3IDE5LDE0LjVDMTksMTUuMzMgMTguMzMsMTYgMTcuNSwxNlMxNiwxNS4zMyAxNiwxNC41QzE2LDEzLjY3IDE2LjY3LDEzIDE3LjUsMTNNMTIsOVY3SDVWOUgxMk0xMiwxM1YxMUg1VjEzSDEyTTEyLDE3VjE1SDVWMTdIMTJaIi8+PC9zdmc+" alt="Ver Dataset">
+                        Ir a Ver Dataset
                     </a>
                 </div>
             </div>
@@ -55,9 +71,9 @@
                 <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxwYXRoIGZpbGw9IiM4MDAwMjAiIGQ9Ik04MCA3MEgyMDBWOTBIODBWNzBaTTgwIDEwMEgxNjBWMTEwSDgwVjEwMFpNODAgNTBIMTYwVjYwSDgwVjUwWk0xODAgNTBIMjAwVjYwSDE4MFY1MFpNMTgwIDEwMEgyMDBWMTEwSDE4MFYxMDBaTTExMCAxMTVIMTcwVjEzMEgxMTBWMTE1WiIvPjwvc3ZnPg==')"></div>
                 <div class="card-content">
                     <h3>Entrenar Modelo</h3>
-                    <p>Entrena un modelo de aprendizaje automático usando las imágenes recopiladas en el dataset.</p>
+                    <p>Entrena modelos de aprendizaje automático (Random Forest, SVM, o Redes Neuronales) usando las imágenes recopiladas en el dataset. Compara el rendimiento de diferentes algoritmos.</p>
                     <a href="{{ url_for('train_page') }}" class="action-btn">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEz,MTNIMTFWN00xMywxN0wxMlYxNU0xM00xMiwyQTEwLDEwIDAgMCwwIDIsMTJBMTAuOSwxMCAwIDAsMCAxMiwyMkExMCwxMCAwIDAsMCAyMiwxMkExMCwxMCAwIDAsMCAxMiwyeiIvPjwvc3ZnPg==" alt="Entrenar">
                         Ir a Entrenar Modelo
                     </a>
                 </div>
@@ -67,7 +83,7 @@
                 <div class="card-img" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2ZiZjRmNiIvPjxjaXJjbGUgY3g9IjE0MCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjODAwMDIwIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNDAiIHk9IjkwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNTAiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjODAwMDIwIj7OtTwvdGV4dD48L3N2Zz4=')"></div>
                 <div class="card-content">
                     <h3>Predecir Símbolo</h3>
-                    <p>Dibuja un símbolo y el modelo entrenado intentará reconocerlo como α, β o ε.</p>
+                    <p>Dibuja un símbolo y el modelo actualmente seleccionado intentará reconocerlo como α, β o ε. Cambia entre diferentes algoritmos para comparar resultados.</p>
                     <a href="{{ url_for('predict_page') }}" class="action-btn">
                         <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir">
                         Ir a Predecir Símbolo
@@ -80,8 +96,9 @@
         <p>Para obtener los mejores resultados, sigue estos pasos:</p>
         <ol style="text-align: left; max-width: 600px; margin: 0 auto;">
             <li>Crea un dataset dibujando múltiples ejemplos de cada símbolo (α, β, ε).</li>
-            <li>Entrena el modelo usando el dataset creado.</li>
-            <li>Dibuja un símbolo en la página de predicción para probar el modelo.</li>
+            <li>Selecciona y entrena diferentes modelos de IA (Random Forest, SVM, Redes Neuronales).</li>
+            <li>Compara el rendimiento de los modelos y elige el que mejor funcione.</li>
+            <li>Dibuja un símbolo en la página de predicción para probar el modelo seleccionado.</li>
         </ol>
     </main>
 

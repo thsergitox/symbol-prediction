@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Entrenar Modelo de Símbolos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .model-selector {
+            background: var(--background);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .model-card {
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .model-card.current {
+            border-color: var(--primary);
+            background: rgba(128, 0, 32, 0.05);
+        }
+        
+        .model-card.trained {
+            border-color: var(--success);
+        }
+        
+        .model-card h4 {
+            margin: 0 0 8px 0;
+            color: var(--primary);
+        }
+        
+        .model-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-current { background-color: var(--primary); }
+        .status-trained { background-color: var(--success); }
+        .status-untrained { background-color: var(--warning); }
+        
+        .model-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .switch-model-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .switch-model-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .switch-model-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+        
+        .model-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
+            <h1>Entrenar Modelo de Símbolos</h1>
+            <p>Entrena un modelo de reconocimiento automático usando el dataset creado</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEwLDIwVjE0SDR2Nkg5TTExLDIwaDRsMy42LTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDExLDIwTTEyLDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
+                Inicio
+            </a>
+            <a href="{{ url_for('create_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
+                Crear Dataset
+            </a>
+            <a href="{{ url_for('view_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTIyLDMINUE0LDQgMCAwLDAgMSw3VjE3QTQsNCAwIDAsMCA1LDIxSDE5QTQsNCAwIDAsMCAyMywxN1Y3QTQsNCAwIDAsMCAyMiwzTTIxLDE3QTIsICAMCAwLDEgMTksMTlINUEyLDIgMCAwLDEgMywxN1Y3QTIsICAyIDAgMCwxIDUsNUgxOUEyLDIgMCAwLDEgMjEsN1YxN00xNi41LDEwQTEuNSwxLjUgMCAwLDAgMTUsOC41QTEuNSwxLjUgMCAwLDAgMTMuNSwxMEExLjUsMS41IDAgMCwwIDE1LDExLjVBMS41LDEuNSAwIDAsMCAxNi41LDEwTTE3LjUsOUMxOC4zMyw5IDE5LDkuNjcgMTksMTAuNUMxOSwxMS4zMyAxOC4zMywxMiAxNy41LDEyUzE2LDExLjMzIDE2LDEwLjVDMTYsOS42NyAxNi42Nyw5IDE3LjUsOU0xNi41LDE0QTEuNSwxLjUgMCAwLDAgMTUsMTIuNUExLjUsMS41IDAgMCwwIDEzLjUsMTRBMS41LDEuNSAwIDAsMCAxNSwxNS41QTEuNSwxLjUgMCAwLDAgMTYuNSwxNE0xNy41LDEzQzE4LjMzLDEzIDE5LDEzLjY3IDE5LDE0LjVDMTksMTUuMzMgMTguMzMsMTYgMTcuNSwxNlMxNiwxNS4zMyAxNiwxNC41QzE2LDEzLjY3IDE2LjY3LDEzIDE3LjUsMTNNMTIsOVY3SDVWOUgxMk0xMiwxM1YxMUg1VjEzSDEyTTEyLDE3VjE1SDVWMTdIMTJaIi8+PC9zdmc+" alt="Ver Dataset">
+                Ver Dataset
+            </a>
+            <a href="{{ url_for('train_page') }}" class="active-nav">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">
+                Entrenar Modelo
+            </a>
+            <a href="{{ url_for('predict_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir Símbolo">
+                Predecir Símbolo
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <h2>Entrenamiento del Modelo</h2>
+
+        <div style="max-width: 900px; margin: 0 auto;">
+            
+            <!-- Model Selection Section -->
+            <div class="model-selector">
+                <h3>Selección de Arquitectura de IA</h3>
+                <p>Elige qué algoritmo de machine learning usar para el reconocimiento de símbolos:</p>
+                
+                <div class="model-grid">
+                    {% for model_type in available_models %}
+                        {% set model_info = all_models_info[model_type] %}
+                        <div class="model-card {% if model_info.is_current %}current{% elif model_info.exists %}trained{% endif %}">
+                            <h4>
+                                {% if model_type == 'random_forest' %}
+                                    Random Forest
+                                {% elif model_type == 'svm' %}
+                                    Support Vector Machine
+                                {% elif model_type == 'neural_network' %}
+                                    Red Neuronal
+                                {% else %}
+                                    {{ model_type.title() }}
+                                {% endif %}
+                            </h4>
+                            
+                            <div class="model-status">
+                                <div class="status-indicator {% if model_info.is_current %}status-current{% elif model_info.exists %}status-trained{% else %}status-untrained{% endif %}"></div>
+                                <span>
+                                    {% if model_info.is_current %}
+                                        Modelo Actual
+                                    {% elif model_info.exists %}
+                                        Entrenado ({{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}%)
+                                    {% else %}
+                                        No Entrenado
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            {% if model_info.exists and not model_info.is_current %}
+                                <div class="model-info">
+                                    <strong>Precisión:</strong> {{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}%<br>
+                                    <strong>Clases:</strong> {{ model_info.classes | length if model_info.classes else 0 }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if not model_info.is_current %}
+                                <form method="post" action="{{ url_for('train_page') }}" style="display: inline;">
+                                    <input type="hidden" name="action" value="switch_model">
+                                    <input type="hidden" name="model_type" value="{{ model_type }}">
+                                    <button type="submit" class="switch-model-btn">
+                                        Cambiar a {{ model_type.replace('_', ' ').title() }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <div class="model-description">
+                                {% if model_type == 'random_forest' %}
+                                    Algoritmo ensemble que combina múltiples árboles de decisión. Robusto y eficiente para datasets pequeños.
+                                {% elif model_type == 'svm' %}
+                                    Máquina de vectores de soporte con kernel RBF. Excelente para clasificación de patrones complejos.
+                                {% elif model_type == 'neural_network' %}
+                                    Red neuronal multicapa (MLP). Mejor para patrones complejos y datasets grandes.
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Dataset Status Section -->
+            <h3>Estado del Dataset</h3>
+            <div style="background: var(--background); padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+                <p style="margin-bottom: 16px; font-size: 1.1rem;">Total de imágenes en el dataset: <strong>{{ total_images }}</strong></p>
+                
+                <ul>
+                    {% for symbol, count in stats.items() %}
+                    <li>
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 1.3rem; margin-right: 10px;">{{ symbol }}</span>
+                            <span style="flex-grow: 1;">{{ count }} imágenes</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Training Section -->
+            <h3>Entrenamiento - {{ current_model_type.replace('_', ' ').title() }}</h3>
+            {% if message %}
+                <p class="message {% if 'Error' in message or 'No images' in message or 'Entrenamiento no permitido' in message %}error-message{% else %}success-message{% endif %}">{{ message }}</p>
+            {% endif %}
+            
+            {% if not can_train_now and last_trained_time %}
+                <div class="message warning-message">
+                    <strong>Espera por favor:</strong> Debes esperar {{ minutes_to_wait|round(1) }} minutos más para volver a entrenar el modelo.
+                    <div style="margin-top: 10px; font-size: 0.9rem;">
+                        (El entrenamiento está limitado a una vez cada {{ min_training_interval }} minutos)
+                    </div>
+                </div>
+            {% endif %}
+            
+            <form method="post" action="{{ url_for('train_page') }}">
+                <input type="hidden" name="action" value="train">
+                <button type="submit" class="action-btn primary-btn" {% if total_images == 0 or not can_train_now %}disabled title="{% if total_images == 0 %}Añada imágenes al dataset primero{% elif not can_train_now %}Espere {{ minutes_to_wait|round(1) }} minutos más para entrenar de nuevo{% endif %}"{% endif %}>
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTEzLDFMMTMuMTksMUgyMFYzSDEyVjFMMTMsMU0xNSw3VjlIMjBWMTFIMTVWMTNIMjBWMTVIMTVWMTdIMjBWMTlIMTVWMjFMMTQsMjJIMTBMMTguNSw0TDIwLjI0LDVMMTUsMTMuM1Y3TTE0LjIzLDRIMTNWN0g4VjVIMnYxNkgxNFYxMC4yM0wxNC4yMyw0WiIvPjwvc3ZnPg==" alt="Entrenar">
+                    Entrenar Modelo {{ current_model_type.replace('_', ' ').title() }}
+                </button>
+            </form>
+            
+            <!-- Training History Section -->
+            <h3>Último Entrenamiento - {{ current_model_type.replace('_', ' ').title() }}</h3>
+            <div style="background: var(--background); padding: 16px; border-radius: 8px; text-align: left;">
+                {% if last_trained_time %}
+                    <p>
+                        <strong>Fecha:</strong> 
+                        {% if last_trained_time is not string %}
+                            {{ last_trained_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% else %}
+                            {{ last_trained_time }}
+                        {% endif %}
+                    </p>
+                    {% if last_accuracy is not none and last_trained_time is not string %}
+                    <p>
+                        <strong>Precisión del modelo:</strong> {{ "%.2f" | format(last_accuracy * 100) }}%
+                    </p>
+                    {% endif %}
+                    <p>
+                        <strong>Estado:</strong> 
+                        {% if last_trained_time is string %}
+                            <span style="color: var(--error);">{{ last_trained_time }}</span>
+                        {% elif can_train_now %}
+                            <span style="color: var(--success);">Puedes entrenar de nuevo.</span>
+                        {% else %}
+                            <span style="color: var(--warning);">Debes esperar {{ minutes_to_wait|round(1) }} minutos más.</span>
+                        {% endif %}
+                    </p>
+                {% else %}
+                    <p>El modelo {{ current_model_type.replace('_', ' ').title() }} aún no ha sido entrenado.</p>
+                    <p>Por favor crea un dataset primero usando la sección de "Crear Dataset" y luego entrena el modelo.</p>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 32px;">
+                <a href="{{ url_for('predict_page') }}" class="action-btn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Ir a Predecir">
+                    Ir a Predecir Símbolos
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Proyecto de Reconocimiento de Símbolos | Universidad Nacional de Ingeniería</p>
+    </footer>
+</body>
+</html> 

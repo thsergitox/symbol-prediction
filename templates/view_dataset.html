@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ver Dataset de Símbolos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .dataset-section {
+            margin-bottom: 32px;
+        }
+        
+        .dataset-section h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .symbol-display {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .image-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .image-card {
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .image-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(128, 0, 32, 0.1);
+        }
+        
+        .image-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        
+        .image-filename {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 8px 0;
+            word-break: break-all;
+        }
+        
+        .delete-btn {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #c41e3a;
+        }
+        
+        .delete-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .no-images {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        
+        .dataset-summary {
+            background: var(--background);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .success-message, .error-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-weight: 500;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
+            <h1>Ver Dataset de Símbolos</h1>
+            <p>Administra las imágenes del dataset para entrenar los modelos</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEwLDIwVjE0SDR2Nkg5TTExLDIwaDRsMy42LTYuNWM0LC0xLjUgMS41LC0zIDEuNSwtM3Y0LjVINHYtNC41YzAsMCAtLjUsMS41IDMuMiwzTDExLDIwTTEyLDJBMywzIDAgMCwxIDE1LDVsLS4xLC42TDEzLjY0LDEwSDEwLjM2TDguOSw1LjZMOC43NCw1QTMsMyAwIDAsMSAxMiwyeiIvPjwvc3ZnPg==" alt="Inicio">
+                Inicio
+            </a>
+            <a href="{{ url_for('create_dataset_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Crear Dataset">
+                Crear Dataset
+            </a>
+            <a href="{{ url_for('view_dataset_page') }}" class="active-nav">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTIyLDMINUE0LDQgMCAwLDAgMSw3VjE3QTQsNCAwIDAsMCA1LDIxSDE5QTQsNCAwIDAsMCAyMywxN1Y3QTQsNCAwIDAsMCAyMiwzTTIxLDE3QTIsICAMCAwLDEgMTksMTlINUEyLDIgMCAwLDEgMywxN1Y3QTIsICAyIDAgMCwxIDUsNUgxOUEyLDIgMCAwLDEgMjEsN1YxN00xNi41LDEwQTEuNSwxLjUgMCAwLDAgMTUsOC41QTEuNSwxLjUgMCAwLDAgMTMuNSwxMEExLjUsMS41IDAgMCwwIDE1LDExLjVBMS41LDEuNSAwIDAsMCAxNi41LDEwTTE3LjUsOUMxOC4zMyw5IDE5LDkuNjcgMTksMTAuNUMxOSwxMS4zMyAxOC4zMywxMiAxNy41LDEyUzE2LDExLjMzIDE2LDEwLjVDMTYsOS42NyAxNi42Nyw5IDE3LjUsOU0xNi41LDE0QTEuNSwxLjUgMCAwLDAgMTUsMTIuNUExLjUsMS41IDAgMCwwIDEzLjUsMTRBMS41LDEuNSAwIDAsMCAxNSwxNS41QTEuNSwxLjUgMCAwLDAgMTYuNSwxNE0xNy41LDEzQzE4LjMzLDEzIDE5LDEzLjY3IDE5LDE0LjVDMTksMTUuMzMgMTguMzMsMTYgMTcuNSwxNlMxNiwxNS4zMyAxNiwxNC41QzE2LDEzLjY3IDE2LjY3LDEzIDE3LjUsMTNNMTIsOVY3SDVWOUgxMk0xMiwxM1YxMUg1VjEzSDEyTTEyLDE3VjE1SDVWMTdIMTJaIi8+PC9zdmc+" alt="Ver Dataset">
+                Ver Dataset
+            </a>
+            <a href="{{ url_for('train_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar Modelo">
+                Entrenar Modelo
+            </a>
+            <a href="{{ url_for('predict_page') }}">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Predecir Símbolo">
+                Predecir Símbolo
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <h2>Dataset de Símbolos Griegos</h2>
+            
+            <div class="dataset-summary">
+                <h3>Resumen del Dataset</h3>
+                <p><strong>Total de imágenes:</strong> {{ total_images }}</p>
+                {% if total_images == 0 %}
+                    <p style="color: var(--warning);">No hay imágenes en el dataset. <a href="{{ url_for('create_dataset_page') }}">Crear imágenes primero</a>.</p>
+                {% endif %}
+            </div>
+
+            <div id="message-container"></div>
+
+            {% for symbol_name, images in dataset_images.items() %}
+            <div class="dataset-section">
+                <h3>
+                    <span class="symbol-display">{{ symbols_display[symbol_name] }}</span>
+                    <span>{{ symbol_name.title() }}</span>
+                    <span class="image-count">{{ images|length }} imágenes</span>
+                </h3>
+                
+                {% if images %}
+                <div class="images-grid">
+                    {% for image in images %}
+                    <div class="image-card" id="card-{{ symbol_name }}-{{ loop.index }}">
+                        <img src="{{ url_for('serve_dataset_image', symbol=symbol_name, filename=image.filename) }}" 
+                             alt="{{ symbols_display[symbol_name] }} - {{ image.filename }}"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display: none; color: var(--error); padding: 20px;">Error al cargar imagen</div>
+                        
+                        <div class="image-filename">{{ image.filename }}</div>
+                        
+                        <button class="delete-btn" 
+                                onclick="deleteImage('{{ symbol_name }}', '{{ image.filename }}', 'card-{{ symbol_name }}-{{ loop.index }}')">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-images">
+                    <p>No hay imágenes para {{ symbols_display[symbol_name] }} ({{ symbol_name }})</p>
+                    <p><a href="{{ url_for('create_dataset_page') }}">Crear algunas imágenes</a></p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div style="margin-top: 40px; text-align: center;">
+                <a href="{{ url_for('create_dataset_page') }}" class="action-btn primary-btn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTE5LDEzSDEzVjE5SDExVjEzSDVWMTFIMTFWNUgxM1YxMUgxOVYxM1oiLz48L3N2Zz4=" alt="Agregar">
+                    Agregar más imágenes
+                </a>
+                
+                <a href="{{ url_for('train_page') }}" class="action-btn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTEzLDEzSDExVjdIMTNNMTMsMTdIMTFWMTVIMTNNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLDEwIDAgMCwwIDEyLDJaIi8+PC9zdmc+" alt="Entrenar">
+                    Entrenar Modelos
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Proyecto de Reconocimiento de Símbolos | Universidad Nacional de Ingeniería</p>
+    </footer>
+
+    <div class="loading" id="loading">
+        <div>Eliminando imagen...</div>
+    </div>
+
+    <script>
+        function deleteImage(symbol, filename, cardId) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar la imagen "${filename}"?`)) {
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const card = document.getElementById(cardId);
+            const messageContainer = document.getElementById('message-container');
+            
+            // Show loading
+            loading.classList.add('active');
+            
+            // Disable button
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Eliminando...';
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('symbol', symbol);
+            formData.append('filename', filename);
+            
+            fetch('{{ url_for("delete_image") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.remove('active');
+                
+                if (data.success) {
+                    // Remove the card with animation
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+                        // Update counters
+                        updateImageCounts();
+                    }, 300);
+                    
+                    showMessage(data.message, 'success');
+                } else {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = '🗑️ Eliminar';
+                    showMessage(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                loading.classList.remove('active');
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = '🗑️ Eliminar';
+                showMessage('Error de conexión: ' + error.message, 'error');
+            });
+        }
+        
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('message-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type + '-message';
+            messageDiv.textContent = message;
+            
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 5000);
+        }
+        
+        function updateImageCounts() {
+            // Update image counts in headers
+            document.querySelectorAll('.dataset-section').forEach(section => {
+                const imageCards = section.querySelectorAll('.image-card');
+                const countElement = section.querySelector('.image-count');
+                const count = imageCards.length;
+                
+                countElement.textContent = count + ' imagen' + (count !== 1 ? 'es' : '');
+                
+                // Show "no images" message if no images left
+                if (count === 0) {
+                    const imagesGrid = section.querySelector('.images-grid');
+                    if (imagesGrid) {
+                        imagesGrid.style.display = 'none';
+                    }
+                    
+                    // Create or show no-images message
+                    let noImagesDiv = section.querySelector('.no-images');
+                    if (!noImagesDiv) {
+                        const symbolName = section.querySelector('h3 span:nth-child(2)').textContent.toLowerCase();
+                        const symbolDisplay = section.querySelector('.symbol-display').textContent;
+                        
+                        noImagesDiv = document.createElement('div');
+                        noImagesDiv.className = 'no-images';
+                        noImagesDiv.innerHTML = `
+                            <p>No hay imágenes para ${symbolDisplay} (${symbolName})</p>
+                            <p><a href="{{ url_for('create_dataset_page') }}">Crear algunas imágenes</a></p>
+                        `;
+                        section.appendChild(noImagesDiv);
+                    } else {
+                        noImagesDiv.style.display = 'block';
+                    }
+                }
+            });
+            
+            // Update total count
+            const totalImages = document.querySelectorAll('.image-card').length;
+            document.querySelector('.dataset-summary p strong').parentNode.innerHTML = 
+                '<strong>Total de imágenes:</strong> ' + totalImages;
+        }
+    </script>
+</body>
+</html> 
