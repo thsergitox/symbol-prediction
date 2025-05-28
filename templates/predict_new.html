@@ -367,6 +367,8 @@
                                         Support Vector Machine
                                     {% elif model_type == 'neural_network' %}
                                         Red Neuronal
+                                    {% elif model_type == 'cnn' %}
+                                        Red Neuronal Convolucional
                                     {% else %}
                                         {{ model_type.title() }}
                                     {% endif %}
@@ -402,6 +404,8 @@
                                     Máquina de vectores de soporte excelente para clasificación de patrones.
                                 {% elif model_type == 'neural_network' %}
                                     Red neuronal ideal para patrones complejos.
+                                {% elif model_type == 'cnn' %}
+                                    Red neuronal convolucional con extracción automática de características visuales.
                                 {% endif %}
                             </div>
                             

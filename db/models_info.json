@@ -1,17 +1,22 @@
 {
   "random_forest": {
-    "last_trained": "2025-05-28T13:17:36.987088",
-    "accuracy": 0.7,
-    "training_count": 4
-  },
-  "svm": {
-    "last_trained": "2025-05-28T12:35:47.127942",
-    "accuracy": 0.75,
+    "last_trained": "2025-05-28T14:03:38.758040",
+    "accuracy": 0.6666666666666666,
     "training_count": 5
   },
+  "svm": {
+    "last_trained": "2025-05-28T14:03:44.172633",
+    "accuracy": 0.6666666666666666,
+    "training_count": 6
+  },
   "neural_network": {
-    "last_trained": "2025-05-28T14:02:16.972679",
+    "last_trained": "2025-05-28T14:56:42.779874",
     "accuracy": 0.5833333333333334,
-    "training_count": 4
+    "training_count": 5
+  },
+  "cnn": {
+    "last_trained": "2025-05-28T18:51:41.288158",
+    "accuracy": 0.6666666666666666,
+    "training_count": 5
   }
 }

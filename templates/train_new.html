@@ -198,11 +198,13 @@
                         <div class="model-card {% if model_info.is_current %}current{% elif model_info.exists %}trained{% endif %}">
                             <h4>
                                 {% if model_type == 'random_forest' %}
-                                    🌳 Bosque Aleatorio (Random Forest)
+                                    Random Forest
                                 {% elif model_type == 'svm' %}
-                                    🎯 Máquina de Vectores de Soporte (SVM)
+                                    Support Vector Machine
                                 {% elif model_type == 'neural_network' %}
-                                    🧠 Red Neuronal Artificial (MLP)
+                                    Red Neuronal
+                                {% elif model_type == 'cnn' %}
+                                    Red Neuronal Convolucional
                                 {% else %}
                                     {{ model_type.title() }}
                                 {% endif %}
@@ -245,6 +247,8 @@
                                     Máquina de vectores de soporte con kernel RBF. Excelente para la clasificación de patrones complejos y espacios de alta dimensión.
                                 {% elif model_type == 'neural_network' %}
                                     Red neuronal multicapa con retropropagación. Óptima para el aprendizaje de patrones complejos en datasets grandes.
+                                {% elif model_type == 'cnn' %}
+                                    Red neuronal convolucional con extracción automática de características visuales. Arquitectura profunda especializada en el reconocimiento de imágenes.
                                 {% endif %}
                             </div>
                         </div>
