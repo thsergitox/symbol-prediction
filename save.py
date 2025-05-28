@@ -2,7 +2,7 @@ import os
 import base64
 import glob
 import numpy as np
-from flask import request, redirect, send_file
+from flask import request, redirect, send_file, jsonify
 from skimage import io, transform
 from datetime import datetime
 
@@ -84,6 +84,9 @@ def upload_image():
         print(f"[UPLOAD] Received image for symbol: {symbol_to_draw}")
         if not symbol_to_draw or symbol_to_draw not in SYMBOLS:
             print(f"[ERROR] Invalid symbol specified: {symbol_to_draw}")
+            # Check if request is AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': 'Invalid symbol specified.'}), 400
             return "Invalid symbol specified.", 400
         
         symbol_folder = os.path.join(DATASET_BASE_PATH, symbol_to_draw)
@@ -96,9 +99,22 @@ def upload_image():
         with open(filepath, "wb") as fh:
             fh.write(base64.b64decode(img_data))
         print(f"[UPLOAD] Image saved to {filepath}")
+        
+        # Check if request is AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': True, 
+                'message': 'Imagen guardada exitosamente',
+                'filename': filename,
+                'symbol': symbol_to_draw
+            }), 200
+        
         return redirect("/create-dataset")
     except Exception as e:
         print(f"[ERROR] Error uploading image: {e}")
+        # Check if request is AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': f'Error uploading image: {str(e)}'}), 500
         return "Error uploading image.", 500
 
 def download_X_symbols():

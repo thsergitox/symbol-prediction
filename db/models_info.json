@@ -10,8 +10,8 @@
     "training_count": 5
   },
   "neural_network": {
-    "last_trained": "2025-05-28T13:17:50.881655",
-    "accuracy": 0.75,
-    "training_count": 3
+    "last_trained": "2025-05-28T14:02:16.972679",
+    "accuracy": 0.5833333333333334,
+    "training_count": 4
   }
 }
