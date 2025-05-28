@@ -4,7 +4,7 @@ Sistema de reconocimiento de símbolos griegos con **múltiples arquitecturas de
 
 ## 📋 Descripción del Proyecto
 
-Esta aplicación web permite crear datasets, entrenar modelos de machine learning y predecir símbolos griegos (α, β, ε) dibujados por el usuario. La nueva arquitectura soporta **múltiples algoritmos de IA** que se pueden intercambiar dinámicamente.
+Esta aplicación web permite crear datasets, entrenar modelos de machine learning y predecir símbolos griegos (α, β, ε) dibujados por el usuario. La nueva arquitectura soporta **múltiples algoritmos de IA** que se pueden intercambiar dinámicamente con una **interfaz moderna y responsiva**.
 
 ## ⭐ Características Principales
 
@@ -13,6 +13,14 @@ Esta aplicación web permite crear datasets, entrenar modelos de machine learnin
   - **Random Forest**: Robusto y eficiente para datasets pequeños
   - **Support Vector Machine (SVM)**: Excelente para patrones complejos  
   - **Red Neuronal (MLP)**: Mejor para datasets grandes y patrones complejos
+
+### 🎨 **Interfaz de Usuario Moderna**
+- **Predicción en Tiempo Real**: Sin recargas de página usando AJAX
+- **Canvas Interactivo**: Soporte completo para dispositivos móviles y táctiles
+- **Visualización de Confianza**: Barras de progreso animadas para todas las predicciones
+- **Cambio Dinámico de Modelos**: Intercambio instantáneo entre arquitecturas
+- **Indicadores de Estado**: Loading states y feedback visual mejorado
+- **Diseño Responsivo**: Optimizado para desktop, tablet y móvil
 
 ### 🛠️ **Funcionalidades**
 - **Crear Dataset**: Dibuja símbolos en canvas interactivo
@@ -81,9 +89,13 @@ symbol-prediction/
 │   ├── models_info.json    # Info de entrenamiento
 │   └── current_model.txt   # Modelo actual seleccionado
 ├── 📂 templates/            # Plantillas HTML
-│   ├── train_new.html      # Entrenamiento multi-modelo
-│   └── predict_new.html    # Predicción multi-modelo
+│   ├── index.html          # Página principal
+│   ├── create_dataset.html # Creación de dataset
+│   ├── view_dataset.html   # Visualización de dataset
+│   ├── train_new.html      # ✨ Entrenamiento multi-modelo
+│   └── predict_new.html    # ✨ Predicción moderna con AJAX
 ├── 📂 static/               # CSS, JS, imágenes
+│   └── style.css           # Estilos globales
 ├── 📄 ai_architectures.py   # 🆕 Arquitecturas de IA (SOLID)
 ├── 📄 ai_manager.py         # 🆕 Manager de modelos
 ├── 📄 app_new.py           # 🆕 App con multi-modelo
@@ -123,11 +135,55 @@ symbol-prediction/
   - Precisión del modelo
   - Descripción del algoritmo
 
-### 5. **Predecir Símbolos**
+### 5. **Predecir Símbolos** ✨
 - Ve a "Predecir Símbolo"
-- Dibuja un símbolo en el canvas
-- Haz clic en "Predecir con [Modelo Actual]"
-- Ve la predicción y nivel de confianza
+- **Selecciona el modelo** a usar en la sección superior
+- **Dibuja un símbolo** en el canvas interactivo
+- **Predicción instantánea**: Sin recargar la página
+- **Visualiza resultados**:
+  - Símbolo predicho con nivel de confianza
+  - Barras de probabilidad para todas las clases
+  - Información del modelo usado
+  - Precisión y última fecha de entrenamiento
+
+## 🎨 Mejoras de Interfaz de Usuario
+
+### **Página de Predicción (predict_new.html)** ✨
+- **🔄 AJAX Asíncrono**: Predicciones sin recargar la página
+- **📱 Soporte Táctil**: Canvas optimizado para dispositivos móviles
+- **⚡ Estados de Carga**: Indicadores visuales durante el procesamiento
+- **📊 Visualización Mejorada**: 
+  - Barras de progreso animadas para probabilidades
+  - Tarjetas de modelo con estados visuales
+  - Diseño responsive con CSS Grid
+- **🎯 UX Mejorada**:
+  - Feedback inmediato para acciones del usuario
+  - Manejo de errores con mensajes claros
+  - Transiciones suaves y animaciones
+
+### **Características del Canvas** 🎨
+```javascript
+// Soporte completo para dispositivos móviles
+canvas.addEventListener('touchstart', handleTouch);
+canvas.addEventListener('touchmove', handleTouch);
+canvas.addEventListener('touchend', handleTouch);
+
+// Inicialización dinámica
+function initCanvas() {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#800020';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+}
+```
+
+### **Sistema de Barras de Probabilidad** 📊
+- **Animaciones CSS**: Transiciones suaves de 0.6s
+- **Datos Dinámicos**: Actualizadas via JavaScript
+- **Colores Temáticos**: Gradientes que reflejan la marca
+- **Responsive**: Se adaptan a diferentes tamaños de pantalla
 
 ## 🔧 API REST (Opcional)
 
@@ -164,6 +220,19 @@ GET /api/models/{model_type}/info
 - **Formato**: Escala de grises
 - **Intervalo de entrenamiento**: 5 minutos mínimo
 - **Split de datos**: 80% entrenamiento, 20% prueba
+
+### **Tecnologías Frontend** 🎨
+- **HTML5**: Estructura semántica y accesible
+- **CSS3**: 
+  - Variables CSS customizables
+  - CSS Grid y Flexbox
+  - Animaciones y transiciones
+  - Media queries para responsive design
+- **JavaScript ES6+**:
+  - Async/await para llamadas AJAX
+  - Fetch API para comunicación con backend
+  - Canvas API para dibujo interactivo
+  - DOM manipulation moderna
 
 ## 🎯 Principios SOLID Implementados
 
@@ -228,6 +297,12 @@ class AdvancedPreprocessor(DataPreprocessorInterface):
     # Implementar preprocesamiento avanzado
 ```
 
+### **Mejorar la UI** 🎨
+- **Nuevos temas**: Agregar soporte para modo oscuro
+- **Más visualizaciones**: Gráficos de métricas de modelo
+- **Exportar resultados**: Descargar predicciones en PDF/JSON
+- **Historial**: Guardar y revisar predicciones anteriores
+
 ## 🐛 Troubleshooting
 
 ### **Error: Modelo no encontrado**
@@ -239,8 +314,19 @@ class AdvancedPreprocessor(DataPreprocessorInterface):
 - Asegúrate de tener imágenes en las carpetas `dataset/alpha/`, `dataset/beta/`, `dataset/epsilon/`
 
 ### **Cambio de modelo no funciona**
-- Revisa los logs en la consola
+- Revisa los logs en la consola del navegador
 - Verifica que el modelo esté en la lista de modelos disponibles
+- Revisa la consola del servidor para errores de backend
+
+### **Canvas no responde en móvil**
+- Asegúrate de que JavaScript esté habilitado
+- Intenta refrescar la página
+- Verifica que el navegador soporte eventos táctiles
+
+### **Predicción tarda mucho**
+- Revisa la conectividad de red
+- El modelo puede estar procesando - espera a que aparezca el resultado
+- Verifica los logs del servidor para errores
 
 ## 👥 Contribuir
 
@@ -249,6 +335,13 @@ class AdvancedPreprocessor(DataPreprocessorInterface):
 3. Commit tus cambios (`git commit -am 'Agregar nueva arquitectura'`)
 4. Push a la rama (`git push origin feature/nueva-arquitectura`)
 5. Abre un Pull Request
+
+### **Guidelines para Contribuir** 📝
+- Sigue los principios SOLID
+- Mantén la compatibilidad con la interfaz existente
+- Agrega tests para nuevas funcionalidades
+- Documenta cambios en el README
+- Usa nombres descriptivos para variables y funciones
 
 ## 📄 Licencia
 
@@ -260,8 +353,34 @@ Proyecto desarrollado para el curso de **Gráficos por Computadora** en la **Uni
 - Aplicación de principios SOLID en machine learning
 - Arquitecturas extensibles y mantenibles
 - Integración de múltiples algoritmos de IA
-- Desarrollo web con Flask y Python
+- Desarrollo web moderno con Flask y Python
+- **Diseño UX/UI responsivo y accesible** ✨
+- **Programación frontend moderna con JavaScript ES6+** ✨
 
 ---
 
 **Desarrollado con ❤️ por estudiantes de UNI**
+
+## 🆕 Changelog de Versiones
+
+### **v2.1.0** - UI Moderna y AJAX ✨
+- ✅ Predicción asíncrona sin recargas de página
+- ✅ Canvas optimizado para dispositivos móviles
+- ✅ Barras de probabilidad animadas
+- ✅ Estados de carga y mejor feedback visual
+- ✅ Código JavaScript modularizado y mantenible
+- ✅ Mejor manejo de errores en frontend
+- ✅ Diseño responsive mejorado
+
+### **v2.0.0** - Arquitectura Multi-Modelo
+- ✅ Soporte para múltiples algoritmos de IA
+- ✅ Implementación de principios SOLID
+- ✅ Factory pattern para extensibilidad
+- ✅ API REST para gestión de modelos
+- ✅ Interfaz de cambio dinámico de modelos
+
+### **v1.0.0** - Versión Inicial
+- ✅ Funcionalidad básica con Random Forest
+- ✅ Canvas de dibujo
+- ✅ Sistema de dataset
+- ✅ Predicción básica

@@ -225,31 +225,61 @@ def predict_page():
     prediction_result = None
     confidence_score = None
     all_predictions = None
+    message = ""
     
     if request.method == 'POST':
-        image_data = request.form.get('myImage')
-        print(f"[PREDICT] Received image for prediction. Data present: {bool(image_data)}")
-        if image_data:
-            # Use new model manager for prediction
-            prediction_result, confidence_score, all_predictions = model_manager.predict_with_current_model(image_data)
-            print(f"[PREDICT] Prediction result: {prediction_result}, Confidence: {confidence_score}, All: {all_predictions}")
-            
-            if not isinstance(prediction_result, str) or "Error" not in prediction_result:
-                session['last_prediction_data'] = {
-                    'prediction': prediction_result,
-                    'confidence': confidence_score,
-                    'all_predictions': all_predictions, 
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'image_data_url': image_data,
-                    'model_type': model_manager.get_current_model_type()
-                }
-                print("[PREDICT][SESSION] Stored current prediction and image in session.")
+        action = request.form.get('action', 'predict')
+        
+        if action == 'switch_model':
+            # Handle model switching from predict page
+            new_model_type = request.form.get('model_type')
+            if new_model_type and new_model_type != model_manager.get_current_model_type():
+                success = model_manager.switch_model(new_model_type)
+                if success:
+                    message = f"Cambiado exitosamente a modelo: {new_model_type.replace('_', ' ').title()}"
+                else:
+                    message = f"Error al cambiar a modelo: {new_model_type}"
+            else:
+                message = "Tipo de modelo inválido o igual al actual"
+                
+        elif action == 'predict':
+            # Handle prediction
+            image_data = request.form.get('myImage')
+            print(f"[PREDICT] Received image for prediction. Data present: {bool(image_data)}")
+            if image_data:
+                # Use new model manager for prediction
+                prediction_result, confidence_score, all_predictions = model_manager.predict_with_current_model(image_data)
+                print(f"[PREDICT] Prediction result: {prediction_result}, Confidence: {confidence_score}, All: {all_predictions}")
+                
+                if not isinstance(prediction_result, str) or "Error" not in prediction_result:
+                    session['last_prediction_data'] = {
+                        'prediction': prediction_result,
+                        'confidence': confidence_score,
+                        'all_predictions': all_predictions, 
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'image_data_url': image_data,
+                        'model_type': model_manager.get_current_model_type()
+                    }
+                    print("[PREDICT][SESSION] Stored current prediction and image in session.")
+                    # For AJAX requests, return JSON
+                    return jsonify({
+                        'prediction': prediction_result,
+                        'confidence': confidence_score,
+                        'all_predictions': all_predictions,
+                        'current_model_type': model_manager.get_current_model_type(),
+                        'last_trained_time_obj': model_manager.get_last_training_info()[0].isoformat() if model_manager.get_last_training_info()[0] else None,
+                        'last_accuracy': model_manager.get_last_training_info()[1]
+                    })
+                else: # Handle error case for AJAX
+                    return jsonify({'error': prediction_result or "Error en la predicción"}), 400
 
     # Get model information
     last_trained_time, last_accuracy = model_manager.get_last_training_info()
     current_model_type = model_manager.get_current_model_type()
     model_exists = model_manager.model_exists()
     current_model_info = model_manager.get_current_model_info()
+    available_models = model_manager.get_available_models()
+    all_models_info = model_manager.get_all_models_info()
     
     last_trained_display = "No entrenado. Por favor, entrena el modelo primero." 
 
@@ -275,7 +305,10 @@ def predict_page():
                          last_accuracy=last_accuracy, 
                          model_exists=model_exists,
                          current_model_type=current_model_type,
-                         current_model_info=current_model_info)
+                         current_model_info=current_model_info,
+                         available_models=available_models,
+                         all_models_info=all_models_info,
+                         message=message)
 
 # --- New API Routes for Model Management ---
 
@@ -350,6 +383,44 @@ def api_get_current_model():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/debug/models", methods=['GET'])
+def debug_models():
+    """Debug endpoint to compare model states"""
+    debug_info = {}
+    
+    for model_type in model_manager.get_available_models():
+        model_path = model_manager.get_model_path(model_type)
+        debug_info[model_type] = {
+            'path': model_path,
+            'exists': os.path.exists(model_path),
+            'is_current': model_type == model_manager.get_current_model_type(),
+        }
+        
+        if os.path.exists(model_path):
+            try:
+                # Get file stats
+                stat = os.stat(model_path)
+                debug_info[model_type]['file_size'] = stat.st_size
+                debug_info[model_type]['modified_time'] = datetime.fromtimestamp(stat.st_mtime).isoformat()
+                
+                # Try to load and get model info
+                from ai_architectures import ModelFactory, StandardImagePreprocessor
+                temp_model = ModelFactory.create_model(model_type, SYMBOLS_DISPLAY, StandardImagePreprocessor())
+                if temp_model.load_model(model_path):
+                    model_info = temp_model.get_model_info()
+                    debug_info[model_type]['model_info'] = model_info
+                    debug_info[model_type]['classes'] = model_info.get('classes', [])
+                    debug_info[model_type]['training_accuracy'] = model_info.get('training_accuracy', 0)
+                
+            except Exception as e:
+                debug_info[model_type]['error'] = str(e)
+    
+    return jsonify({
+        'current_model': model_manager.get_current_model_type(),
+        'models_debug': debug_info,
+        'timestamp': datetime.now().isoformat()
+    })
 
 if __name__ == "__main__":
     print(f"[INIT] Starting Flask app with multi-model architecture on 0.0.0.0:5000...")

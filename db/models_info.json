@@ -1,0 +1,17 @@
+{
+  "random_forest": {
+    "last_trained": "2025-05-28T13:17:36.987088",
+    "accuracy": 0.7,
+    "training_count": 4
+  },
+  "svm": {
+    "last_trained": "2025-05-28T12:35:47.127942",
+    "accuracy": 0.75,
+    "training_count": 5
+  },
+  "neural_network": {
+    "last_trained": "2025-05-28T13:17:50.881655",
+    "accuracy": 0.75,
+    "training_count": 3
+  }
+}

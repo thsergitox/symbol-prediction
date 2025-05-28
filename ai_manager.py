@@ -193,11 +193,33 @@ class ModelManager:
             for img_path in filelist:
                 try:
                     img = io.imread(img_path)
+                    
+                    # Ensure consistent image format
+                    if img.ndim == 3 and img.shape[2] == 4:  # RGBA
+                        # Use alpha channel for binary images (drawings)
+                        img = img[:, :, 3]
+                    elif img.ndim == 3 and img.shape[2] == 3:  # RGB
+                        # Convert to grayscale
+                        img = np.mean(img, axis=2).astype(np.uint8)
+                    elif img.ndim == 2:  # Already grayscale
+                        img = img.astype(np.uint8)
+                    else:
+                        print(f"[WARN] Unexpected image format for {img_path}: shape {img.shape}")
+                        continue
+                    
+                    # Ensure 2D grayscale image
+                    if img.ndim != 2:
+                        print(f"[WARN] Could not convert {img_path} to 2D grayscale, skipping")
+                        continue
+                    
                     images.append(img)
                     labels.append(symbol_name)
+                    print(f"[MODEL_MANAGER] Loaded {img_path} with shape {img.shape}")
+                    
                 except Exception as e:
                     print(f"[ERROR] Error loading image {img_path}: {e}")
         
+        print(f"[MODEL_MANAGER] Total loaded: {len(images)} images")
         return images, labels
     
     def train_current_model(self) -> Tuple[float, str]:
@@ -205,25 +227,50 @@ class ModelManager:
         if self.ai_service is None:
             return 0.0, "No model initialized"
         
-        print(f"[MODEL_MANAGER] Training {self.current_model_type} model...")
+        print(f"[MODEL_MANAGER] Attempting to train {self.current_model_type} model...")
         
         # Load dataset
         images, labels = self.load_dataset_images()
         
         if not images:
+            print("[MODEL_MANAGER_TRAIN] No images loaded from dataset. Cannot train.")
             return 0.0, "No images available for training."
         
+        print(f"[MODEL_MANAGER_TRAIN] Loaded {len(images)} images for training.")
+        if labels:
+            unique_labels, counts = np.unique(labels, return_counts=True)
+            print(f"[MODEL_MANAGER_TRAIN] Label distribution: {dict(zip(unique_labels, counts))}")
+        else:
+            print("[MODEL_MANAGER_TRAIN] No labels loaded. Cannot train.")
+            return 0.0, "No labels available for training."
+
         # Train model
+        print(f"[MODEL_MANAGER_TRAIN] Passing {len(images)} images and {len(labels)} labels to AIService for {self.current_model_type}.")
         accuracy, message = self.ai_service.train_model(images, labels)
+        print(f"[MODEL_MANAGER_TRAIN] Received from AIService: accuracy={accuracy}, message='{message}'")
         
-        # Save model if training was successful
-        if accuracy > 0:
-            model_path = self.get_model_path(self.current_model_type)
+        # Define model path
+        model_path = self.get_model_path(self.current_model_type)
+
+        # Attempt to delete existing model file before saving a new one
+        if os.path.exists(model_path):
+            try:
+                os.remove(model_path)
+                print(f"[MODEL_MANAGER_TRAIN] Deleted existing model file: {model_path}")
+            except OSError as e:
+                print(f"[MODEL_MANAGER_TRAIN] Error deleting existing model file {model_path}: {e}")
+                # Decide if you want to proceed if deletion fails, or return an error
+                # For now, we'll just log and continue
+
+        # Save model if training was successful (and accuracy is not a placeholder for error)
+        if accuracy > 0.0 and "Error" not in message: # Ensure it's a real accuracy
             if self.ai_service.save_model(model_path):
-                print(f"[MODEL_MANAGER] Saved {self.current_model_type} model to {model_path}")
+                print(f"[MODEL_MANAGER_TRAIN] Successfully saved {self.current_model_type} model to {model_path} with accuracy {accuracy}")
                 self._update_model_training_info(accuracy)
             else:
-                print(f"[MODEL_MANAGER] Failed to save {self.current_model_type} model")
+                print(f"[MODEL_MANAGER_TRAIN] Failed to save {self.current_model_type} model after training.")
+        else:
+            print(f"[MODEL_MANAGER_TRAIN] Model training for {self.current_model_type} did not result in positive accuracy or an error occurred. Model not saved. Reported accuracy: {accuracy}")
         
         return accuracy, message
     
@@ -243,8 +290,23 @@ class ModelManager:
                 tmp.flush()
                 image = io.imread(tmp.name)
             
-            print(f"[MODEL_MANAGER] Predicting with {self.current_model_type} model...")
-            return self.ai_service.predict_symbol(image)
+            print(f"[MODEL_MANAGER] === PREDICTION DEBUG ===")
+            print(f"[MODEL_MANAGER] Current model type: {self.current_model_type}")
+            print(f"[MODEL_MANAGER] Model info: {self.ai_service.get_model_info()}")
+            print(f"[MODEL_MANAGER] Image shape: {image.shape}")
+            print(f"[MODEL_MANAGER] Image data range: [{image.min()}, {image.max()}]")
+            
+            prediction, confidence, all_predictions = self.ai_service.predict_symbol(image)
+            
+            print(f"[MODEL_MANAGER] Prediction result: {prediction}")
+            print(f"[MODEL_MANAGER] Confidence: {confidence}")
+            print(f"[MODEL_MANAGER] All predictions keys: {list(all_predictions.keys()) if all_predictions else None}")
+            if all_predictions:
+                for class_name, pred_data in all_predictions.items():
+                    print(f"[MODEL_MANAGER] {class_name}: {pred_data}")
+            print(f"[MODEL_MANAGER] === END PREDICTION DEBUG ===")
+            
+            return prediction, confidence, all_predictions
             
         except Exception as e:
             print(f"[MODEL_MANAGER] Error in prediction: {e}")
@@ -297,20 +359,9 @@ class ModelManager:
             return None, None
     
     def can_train_again(self) -> Tuple[bool, Optional[float]]:
-        """Check if training is allowed based on time interval"""
-        last_trained_time, _ = self.get_last_training_info()
-        if last_trained_time is None:
-            return True, None
-        
-        now = datetime.now()
-        time_since_last_training = now - last_trained_time
-        minutes_since_last_training = time_since_last_training.total_seconds() / 60
-        
-        if minutes_since_last_training >= MIN_TRAINING_INTERVAL:
-            return True, None
-        else:
-            minutes_to_wait = MIN_TRAINING_INTERVAL - minutes_since_last_training
-            return False, minutes_to_wait
+        """Check if training is allowed - no time restrictions"""
+        # Removed time-based training restrictions
+        return True, None
     
     def model_exists(self, model_type: Optional[str] = None) -> bool:
         """Check if a model file exists"""
