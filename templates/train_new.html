@@ -88,14 +88,72 @@
             margin-top: 8px;
             line-height: 1.4;
         }
+
+        /* Loading Spinner Styles */
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .training-button {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .training-button.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .training-button.loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .training-status {
+            background: var(--background);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="Logo Uni" class="logo">
-            <h1>Entrenar Modelo de Símbolos</h1>
-            <p>Entrena un modelo de reconocimiento automático usando el dataset creado</p>
+            <h1>Entrenamiento de Modelos de IA</h1>
+            <p>Entrena modelos de inteligencia artificial para el reconocimiento automático de símbolos griegos</p>
         </div>
     </header>
 
@@ -125,14 +183,14 @@
     </nav>
 
     <main>
-        <h2>Entrenamiento del Modelo</h2>
+        <h2>Entrenamiento de Modelos de Inteligencia Artificial</h2>
 
         <div style="max-width: 900px; margin: 0 auto;">
             
             <!-- Model Selection Section -->
             <div class="model-selector">
-                <h3>Selección de Arquitectura de IA</h3>
-                <p>Elige qué algoritmo de machine learning usar para el reconocimiento de símbolos:</p>
+                <h3>🤖 Selección de Arquitectura de IA</h3>
+                <p>Elige qué algoritmo de aprendizaje automático utilizar para el reconocimiento de símbolos griegos:</p>
                 
                 <div class="model-grid">
                     {% for model_type in available_models %}
@@ -140,11 +198,11 @@
                         <div class="model-card {% if model_info.is_current %}current{% elif model_info.exists %}trained{% endif %}">
                             <h4>
                                 {% if model_type == 'random_forest' %}
-                                    Random Forest
+                                    🌳 Bosque Aleatorio (Random Forest)
                                 {% elif model_type == 'svm' %}
-                                    Support Vector Machine
+                                    🎯 Máquina de Vectores de Soporte (SVM)
                                 {% elif model_type == 'neural_network' %}
-                                    Red Neuronal
+                                    🧠 Red Neuronal Artificial (MLP)
                                 {% else %}
                                     {{ model_type.title() }}
                                 {% endif %}
@@ -154,19 +212,19 @@
                                 <div class="status-indicator {% if model_info.is_current %}status-current{% elif model_info.exists %}status-trained{% else %}status-untrained{% endif %}"></div>
                                 <span>
                                     {% if model_info.is_current %}
-                                        Modelo Actual
+                                        Modelo Activo
                                     {% elif model_info.exists %}
-                                        Entrenado ({{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}%)
+                                        Entrenado exitosamente ({{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}% precisión)
                                     {% else %}
-                                        No Entrenado
+                                        Sin entrenar
                                     {% endif %}
                                 </span>
                             </div>
                             
                             {% if model_info.exists and not model_info.is_current %}
                                 <div class="model-info">
-                                    <strong>Precisión:</strong> {{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}%<br>
-                                    <strong>Clases:</strong> {{ model_info.classes | length if model_info.classes else 0 }}
+                                    <strong>Precisión alcanzada:</strong> {{ "%.2f" | format((model_info.training_accuracy or 0) * 100) }}%<br>
+                                    <strong>Clases reconocidas:</strong> {{ model_info.classes | length if model_info.classes else 0 }}
                                 </div>
                             {% endif %}
                             
@@ -182,11 +240,11 @@
                             
                             <div class="model-description">
                                 {% if model_type == 'random_forest' %}
-                                    Algoritmo ensemble que combina múltiples árboles de decisión. Robusto y eficiente para datasets pequeños.
+                                    Algoritmo robusto que combina múltiples árboles de decisión. Ideal para datasets pequeños y proporciona excelente estabilidad.
                                 {% elif model_type == 'svm' %}
-                                    Máquina de vectores de soporte con kernel RBF. Excelente para clasificación de patrones complejos.
+                                    Máquina de vectores de soporte con kernel RBF. Excelente para la clasificación de patrones complejos y espacios de alta dimensión.
                                 {% elif model_type == 'neural_network' %}
-                                    Red neuronal multicapa (MLP). Mejor para patrones complejos y datasets grandes.
+                                    Red neuronal multicapa con retropropagación. Óptima para el aprendizaje de patrones complejos en datasets grandes.
                                 {% endif %}
                             </div>
                         </div>
@@ -195,16 +253,16 @@
             </div>
 
             <!-- Dataset Status Section -->
-            <h3>Estado del Dataset</h3>
+            <h3>📊 Estado del Conjunto de Datos</h3>
             <div style="background: var(--background); padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-                <p style="margin-bottom: 16px; font-size: 1.1rem;">Total de imágenes en el dataset: <strong>{{ total_images }}</strong></p>
+                <p style="margin-bottom: 16px; font-size: 1.1rem;">Total de imágenes disponibles: <strong style="color: var(--primary);">{{ total_images }}</strong></p>
                 
                 <ul>
                     {% for symbol, count in stats.items() %}
                     <li>
                         <div style="display: flex; align-items: center;">
                             <span style="font-size: 1.3rem; margin-right: 10px;">{{ symbol }}</span>
-                            <span style="flex-grow: 1;">{{ count }} imágenes</span>
+                            <span style="flex-grow: 1;"><strong>{{ count }}</strong> ejemplos de entrenamiento</span>
                         </div>
                     </li>
                     {% endfor %}
@@ -212,65 +270,80 @@
             </div>
 
             <!-- Training Section -->
-            <h3>Entrenamiento - {{ current_model_type.replace('_', ' ').title() }}</h3>
+            <h3>🚀 Entrenamiento del Modelo - {{ current_model_type.replace('_', ' ').title() }}</h3>
             {% if message %}
                 <p class="message {% if 'Error' in message or 'No images' in message or 'Entrenamiento no permitido' in message %}error-message{% else %}success-message{% endif %}">{{ message }}</p>
             {% endif %}
             
             {% if not can_train_now and last_trained_time %}
                 <div class="message warning-message">
-                    <strong>Espera por favor:</strong> Debes esperar {{ minutes_to_wait|round(1) }} minutos más para volver a entrenar el modelo.
+                    <strong>⏰ Espera requerida:</strong> Debes aguardar {{ minutes_to_wait|round(1) }} minutos más para volver a entrenar el modelo.
                     <div style="margin-top: 10px; font-size: 0.9rem;">
-                        (El entrenamiento está limitado a una vez cada {{ min_training_interval }} minutos)
+                        (El entrenamiento está limitado a una vez cada {{ min_training_interval }} minutos para evitar sobrecarga del sistema)
                     </div>
                 </div>
             {% endif %}
             
-            <form method="post" action="{{ url_for('train_page') }}">
+            <form method="post" action="{{ url_for('train_page') }}" id="trainingForm">
                 <input type="hidden" name="action" value="train">
-                <button type="submit" class="action-btn primary-btn" {% if total_images == 0 or not can_train_now %}disabled title="{% if total_images == 0 %}Añada imágenes al dataset primero{% elif not can_train_now %}Espere {{ minutes_to_wait|round(1) }} minutos más para entrenar de nuevo{% endif %}"{% endif %}>
+                <button type="submit" id="trainButton" class="action-btn primary-btn training-button" {% if total_images == 0 or not can_train_now %}disabled title="{% if total_images == 0 %}Primero debes agregar imágenes al dataset{% elif not can_train_now %}Espera {{ minutes_to_wait|round(1) }} minutos más para entrenar nuevamente{% endif %}"{% endif %}>
+                    <div class="loading-spinner"></div>
                     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZD0iTTEzLDFMMTMuMTksMUgyMFYzSDEyVjFMMTMsMU0xNSw3VjlIMjBWMTFIMTVWMTNIMjBWMTVIMTVWMTdIMjBWMTlIMTVWMjFMMTQsMjJIMTBMMTguNSw0TDIwLjI0LDVMMTUsMTMuM1Y3TTE0LjIzLDRIMTNWN0g4VjVIMnYxNkgxNFYxMC4yM0wxNC4yMyw0WiIvPjwvc3ZnPg==" alt="Entrenar">
-                    Entrenar Modelo {{ current_model_type.replace('_', ' ').title() }}
+                    <span id="buttonText">🧠 Entrenar Modelo {{ current_model_type.replace('_', ' ').title() }}</span>
                 </button>
             </form>
+
+            <!-- Training Status Display -->
+            <div id="trainingStatus" class="training-status" style="display: none;">
+                <p><strong>🔄 Entrenamiento en progreso...</strong></p>
+                <p>El modelo está aprendiendo de las {{ total_images }} imágenes del dataset. Este proceso puede tomar unos momentos.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
             
             <!-- Training History Section -->
-            <h3>Último Entrenamiento - {{ current_model_type.replace('_', ' ').title() }}</h3>
+            <h3>📈 Historial de Entrenamiento - {{ current_model_type.replace('_', ' ').title() }}</h3>
             <div style="background: var(--background); padding: 16px; border-radius: 8px; text-align: left;">
                 {% if last_trained_time %}
                     <p>
-                        <strong>Fecha:</strong> 
+                        <strong>📅 Fecha de entrenamiento:</strong> 
                         {% if last_trained_time is not string %}
-                            {{ last_trained_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {{ last_trained_time.strftime('%d/%m/%Y a las %H:%M:%S') }}
                         {% else %}
                             {{ last_trained_time }}
                         {% endif %}
                     </p>
                     {% if last_accuracy is not none and last_trained_time is not string %}
                     <p>
-                        <strong>Precisión del modelo:</strong> {{ "%.2f" | format(last_accuracy * 100) }}%
+                        <strong>🎯 Precisión alcanzada:</strong> {{ "%.2f" | format(last_accuracy * 100) }}%
                     </p>
                     {% endif %}
                     <p>
-                        <strong>Estado:</strong> 
+                        <strong>⚡ Estado actual:</strong> 
                         {% if last_trained_time is string %}
                             <span style="color: var(--error);">{{ last_trained_time }}</span>
                         {% elif can_train_now %}
-                            <span style="color: var(--success);">Puedes entrenar de nuevo.</span>
+                            <span style="color: var(--success);">✅ Listo para entrenar nuevamente</span>
                         {% else %}
-                            <span style="color: var(--warning);">Debes esperar {{ minutes_to_wait|round(1) }} minutos más.</span>
+                            <span style="color: var(--warning);">⏳ Espera {{ minutes_to_wait|round(1) }} minutos más</span>
                         {% endif %}
                     </p>
                 {% else %}
-                    <p>El modelo {{ current_model_type.replace('_', ' ').title() }} aún no ha sido entrenado.</p>
-                    <p>Por favor crea un dataset primero usando la sección de "Crear Dataset" y luego entrena el modelo.</p>
+                    <p>🤖 El modelo <strong>{{ current_model_type.replace('_', ' ').title() }}</strong> aún no ha sido entrenado.</p>
+                    <p>💡 <strong>Pasos a seguir:</strong></p>
+                    <ol style="margin-left: 20px;">
+                        <li>Crea un conjunto de datos usando la sección "Crear Dataset"</li>
+                        <li>Dibuja múltiples ejemplos de cada símbolo (α, β, ε)</li>
+                        <li>Regresa aquí y entrena el modelo seleccionado</li>
+                    </ol>
                 {% endif %}
             </div>
             
             <div style="margin-top: 32px;">
                 <a href="{{ url_for('predict_page') }}" class="action-btn">
                     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzgwMDAyMCIgZD0iTTkuOSwxN0w5LDE3QzYuOSwxNyA2LDE2LjEgNiwxNEw2LDEwQzYsNy45IDYuOSw3IDksN0wxNSw3QzE3LjEsNyAxOCw3LjkgMTgsMTBMMTgsMTRDMTgsMTYuMSAxNy4xLDE3IDE1LDE3TDE0LjEsMTdMMTIsMjBMMTAuOCwxOEwxMiwxN0wxMiw1TDEyLDVMMTIsNUMxMiw1IDEyLDUgOSw1QzksNSA5LDUgOSw1TDgsNUw4LDhMMTIsOEwxMiwxMkw4LDEyTDgsMTVMOSwxNUwxMCwxN0w5LjksMTdMMTIsMjBMOS45LDE3WiIvPjwvc3ZnPg==" alt="Ir a Predecir">
-                    Ir a Predecir Símbolos
+                    🔮 Probar Predicciones de Símbolos
                 </a>
             </div>
         </div>
@@ -279,5 +352,78 @@
     <footer>
         <p>&copy; 2025 Proyecto de Reconocimiento de Símbolos | Universidad Nacional de Ingeniería</p>
     </footer>
+
+    <script>
+        // Template variables from server (JSON-safe)
+        const templateData = {
+            canTrainNow: {{ can_train_now|lower }},
+            totalImages: {{ total_images }},
+            currentModelType: {{ current_model_type.replace('_', ' ').title()|tojson }}
+        };
+    </script>
+    
+    <script>
+        // Handle training form submission with loading spinner
+        document.getElementById('trainingForm').addEventListener('submit', function(e) {
+            const button = document.getElementById('trainButton');
+            const buttonText = document.getElementById('buttonText');
+            const trainingStatus = document.getElementById('trainingStatus');
+            const progressFill = document.getElementById('progressFill');
+            
+            // Check if button is already disabled or loading
+            if (button.disabled || button.classList.contains('loading')) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            buttonText.textContent = '🧠 Entrenando modelo...';
+            
+            // Show training status
+            trainingStatus.style.display = 'block';
+            
+            // Simulate progress animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 95) progress = 95;
+                progressFill.style.width = progress + '%';
+            }, 500);
+            
+            // If the form takes too long, provide feedback
+            setTimeout(() => {
+                if (button.classList.contains('loading')) {
+                    buttonText.textContent = '⏳ Procesando... esto puede tomar unos minutos';
+                }
+            }, 5000);
+            
+            // Clean up the interval when page unloads
+            window.addEventListener('beforeunload', () => {
+                clearInterval(progressInterval);
+            });
+        });
+        
+        // Reset loading state if we're back on the page (e.g., after training completes)
+        window.addEventListener('load', function() {
+            const button = document.getElementById('trainButton');
+            const buttonText = document.getElementById('buttonText');
+            const trainingStatus = document.getElementById('trainingStatus');
+            
+            // Check if there's a message indicating training completion
+            const messageElement = document.querySelector('.message');
+            if (messageElement && (messageElement.textContent.includes('exitosamente') || messageElement.textContent.includes('Error'))) {
+                button.classList.remove('loading');
+                buttonText.textContent = '🧠 Entrenar Modelo ' + templateData.currentModelType;
+                trainingStatus.style.display = 'none';
+                
+                // Re-enable button if training is allowed
+                if (templateData.canTrainNow && templateData.totalImages > 0) {
+                    button.disabled = false;
+                }
+            }
+        });
+    </script>
 </body>
 </html> 
