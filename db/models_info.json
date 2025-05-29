@@ -1,22 +1,22 @@
 {
   "random_forest": {
-    "last_trained": "2025-05-28T19:30:25.897347",
+    "last_trained": "2025-05-28T22:48:45.226493",
     "accuracy": 0.8666666666666667,
-    "training_count": 6
+    "training_count": 7
   },
   "svm": {
-    "last_trained": "2025-05-28T14:03:44.172633",
-    "accuracy": 0.6666666666666666,
-    "training_count": 6
+    "last_trained": "2025-05-28T22:48:51.788242",
+    "accuracy": 1.0,
+    "training_count": 7
   },
   "neural_network": {
-    "last_trained": "2025-05-28T14:56:42.779874",
-    "accuracy": 0.5833333333333334,
-    "training_count": 5
+    "last_trained": "2025-05-28T22:48:26.770108",
+    "accuracy": 0.9166666666666666,
+    "training_count": 6
   },
   "cnn": {
-    "last_trained": "2025-05-28T18:51:41.288158",
-    "accuracy": 0.6666666666666666,
-    "training_count": 5
+    "last_trained": "2025-05-28T22:48:59.876142",
+    "accuracy": 0.8666666666666667,
+    "training_count": 8
   }
 }

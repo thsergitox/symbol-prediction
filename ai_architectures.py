@@ -78,24 +78,39 @@ class StandardImagePreprocessor(DataPreprocessorInterface):
         if image is None or image.size == 0:
             raise ValueError("Empty or invalid image")
         
-        # Handle different image formats and convert to grayscale
-        if image.ndim == 3 and image.shape[2] == 4:  # RGBA
-            image = image[:, :, 3]  # Use alpha channel for drawings
+        current_image_data: np.ndarray
+
+        if image.ndim == 3 and image.shape[2] == 4:  # RGBA (e.g., from canvas: black on white opaque)
+            # Convert RGB part to grayscale. For black on white: symbol is dark (near 0), background is light (near 255).
+            # Standard weights for RGB to Grayscale conversion
+            gray_image = np.dot(image[:, :, :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+            # Invert the grayscale image: symbol becomes white (255), background black (0).
+            current_image_data = 255 - gray_image
         elif image.ndim == 3 and image.shape[2] == 3:  # RGB
-            image = np.mean(image, axis=2).astype(np.uint8)
+            # Convert to grayscale
+            gray_image = np.dot(image[:, :, :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+            # Invert: symbol white (255), background black (0)
+            current_image_data = 255 - gray_image
         elif image.ndim == 2:  # Already grayscale
-            image = image.astype(np.uint8)
+            # If it's already 2D, it might be:
+            # 1. Training data (black on transparent -> alpha -> symbol=255, bg=0) -> use as is.
+            # 2. Grayscale image (symbol=0, bg=255) -> needs inversion.
+            # Heuristic: if mean is high, likely white background (symbol=0, bg=255), so invert.
+            if np.mean(image) > 128: 
+                current_image_data = 255 - image.astype(np.uint8)
+            else: # Otherwise, assume it's already symbol white (255) on black (0)
+                current_image_data = image.astype(np.uint8)
         else:
-            raise ValueError(f"Unsupported image format: shape {image.shape}")
+            raise ValueError(f"Unsupported image format: shape {image.shape}, ndim {image.ndim}")
         
         # Ensure we have a 2D grayscale image
-        if image.ndim != 2:
-            raise ValueError(f"Could not convert to 2D grayscale: shape {image.shape}")
+        if current_image_data.ndim != 2:
+            raise ValueError(f"Image processing failed to produce a 2D image. Shape: {current_image_data.shape}")
         
         # Resize image to target size
         try:
             image_resized = transform.resize(
-                image, self.target_size,
+                current_image_data, self.target_size,
                 anti_aliasing=True, preserve_range=True
             )
             # Ensure proper data type and range
@@ -194,13 +209,9 @@ class RandomForestModel(ModelInterface):
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         
-        # Preprocess single image
-        if X.ndim == 2:  # Single image
-            X_processed = self.preprocessor.preprocess_image(X)
-            X_processed = X_processed.reshape(1, -1)
-        else:
-            X_processed = self.preprocessor.preprocess_dataset([X])
-            X_processed = X_processed.reshape(1, -1)
+        # Preprocess single image - FIXED: Always use preprocess_image for single predictions
+        X_processed = self.preprocessor.preprocess_image(X)
+        X_processed = X_processed.reshape(1, -1)
         
         prediction_proba = self.model.predict_proba(X_processed)[0]
         predicted_class_idx = np.argmax(prediction_proba)
@@ -289,12 +300,9 @@ class SVMModel(ModelInterface):
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         
-        if X.ndim == 2:
-            X_processed = self.preprocessor.preprocess_image(X)
-            X_processed = X_processed.reshape(1, -1)
-        else:
-            X_processed = self.preprocessor.preprocess_dataset([X])
-            X_processed = X_processed.reshape(1, -1)
+        # FIXED: Always use preprocess_image for single predictions
+        X_processed = self.preprocessor.preprocess_image(X)
+        X_processed = X_processed.reshape(1, -1)
         
         prediction_proba = self.model.predict_proba(X_processed)[0]
         predicted_class_idx = np.argmax(prediction_proba)
@@ -423,12 +431,9 @@ class NeuralNetworkModel(ModelInterface):
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         
-        if X.ndim == 2:
-            X_processed = self.preprocessor.preprocess_image(X)
-            X_processed = X_processed.reshape(1, -1)
-        else:
-            X_processed = self.preprocessor.preprocess_dataset([X])
-            X_processed = X_processed.reshape(1, -1)
+        # FIXED: Always use preprocess_image for single predictions
+        X_processed = self.preprocessor.preprocess_image(X)
+        X_processed = X_processed.reshape(1, -1)
         
         # Normalize for neural network
         X_processed = X_processed.astype(np.float32) / 255.0
@@ -706,11 +711,8 @@ class ConvolutionalNeuralNetwork(ModelInterface):
         if not self.is_trained:
             raise ValueError("CNN model must be trained before prediction")
         
-        # Preprocess single image
-        if X.ndim == 2:
-            X_processed = self.preprocessor.preprocess_image(X)
-        else:
-            X_processed = self.preprocessor.preprocess_dataset([X])[0]
+        # FIXED: Always use preprocess_image for single predictions
+        X_processed = self.preprocessor.preprocess_image(X)
         
         # Extract CNN-like features
         features = self._extract_conv_features(X_processed)

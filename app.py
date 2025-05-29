@@ -252,16 +252,7 @@ def predict_page():
                 print(f"[PREDICT] Prediction result: {prediction_result}, Confidence: {confidence_score}, All: {all_predictions}")
                 
                 if not isinstance(prediction_result, str) or "Error" not in prediction_result:
-                    session['last_prediction_data'] = {
-                        'prediction': prediction_result,
-                        'confidence': confidence_score,
-                        'all_predictions': all_predictions, 
-                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'image_data_url': image_data,
-                        'model_type': model_manager.get_current_model_type()
-                    }
-                    print("[PREDICT][SESSION] Stored current prediction and image in session.")
-                    # For AJAX requests, return JSON
+                    # For AJAX requests, return JSON directly without modifying session for this part
                     return jsonify({
                         'prediction': prediction_result,
                         'confidence': confidence_score,

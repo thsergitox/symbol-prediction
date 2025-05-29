@@ -280,21 +280,48 @@ class ModelManager:
             return "No model initialized", None, None
         
         try:
-            # Convert base64 to image
+            # Convert base64 to image - FIXED: Handle different image formats
             import base64
             import tempfile
+            import re
             
-            img_data = image_data_base64.replace("data:image/png;base64,", "")
+            print(f"[MODEL_MANAGER] Raw image data length: {len(image_data_base64)}")
+            print(f"[MODEL_MANAGER] Image data prefix: {image_data_base64[:50]}...")
+            
+            # Remove data URL prefix more robustly
+            if image_data_base64.startswith('data:'):
+                # Use regex to remove any data URL prefix (png, jpeg, webp, etc.)
+                img_data = re.sub(r'^data:image/[^;]+;base64,', '', image_data_base64)
+            else:
+                img_data = image_data_base64
+            
+            print(f"[MODEL_MANAGER] Cleaned base64 data length: {len(img_data)}")
+            
+            # Decode base64 and save to temporary file
+            try:
+                decoded_data = base64.b64decode(img_data)
+                print(f"[MODEL_MANAGER] Decoded image data length: {len(decoded_data)}")
+            except Exception as e:
+                print(f"[MODEL_MANAGER] Error decoding base64: {e}")
+                return "Error decoding image data", None, None
+            
             with tempfile.NamedTemporaryFile(delete=True, suffix='.png') as tmp:
-                tmp.write(base64.b64decode(img_data))
+                tmp.write(decoded_data)
                 tmp.flush()
+                
+                # Load image using skimage
                 image = io.imread(tmp.name)
             
             print(f"[MODEL_MANAGER] === PREDICTION DEBUG ===")
             print(f"[MODEL_MANAGER] Current model type: {self.current_model_type}")
             print(f"[MODEL_MANAGER] Model info: {self.ai_service.get_model_info()}")
             print(f"[MODEL_MANAGER] Image shape: {image.shape}")
+            print(f"[MODEL_MANAGER] Image dtype: {image.dtype}")
             print(f"[MODEL_MANAGER] Image data range: [{image.min()}, {image.max()}]")
+            
+            # Check if image is valid
+            if image.size == 0:
+                return "Empty image received", None, None
             
             prediction, confidence, all_predictions = self.ai_service.predict_symbol(image)
             
@@ -309,7 +336,9 @@ class ModelManager:
             return prediction, confidence, all_predictions
             
         except Exception as e:
+            import traceback
             print(f"[MODEL_MANAGER] Error in prediction: {e}")
+            print(f"[MODEL_MANAGER] Full traceback: {traceback.format_exc()}")
             return f"Error during prediction: {e}", None, None
     
     def _update_model_training_info(self, accuracy: float):

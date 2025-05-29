@@ -13,6 +13,10 @@
 
         function InitThis() {
             ctx = document.getElementById('myCanvas').getContext("2d");
+            
+            // Initialize canvas with white background (same as predict.html)
+            initCanvas();
+            
             setSymbolToDraw(currentSymbol); // Initialize with the default symbol
             var canvas = $('#myCanvas'); // Cache jQuery object
 
@@ -66,6 +70,16 @@
             });
         }
 
+        // Initialize canvas with white background (same as predict.html)
+        function initCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 11;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
         function Draw(x, y, isDown) {
             if (isDown) {
                 ctx.beginPath();
@@ -81,8 +95,8 @@
         }
 
         function clearArea() {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            // Clear and reinitialize with white background (same as predict.html)
+            initCanvas();
         }
 
         function setSymbolToDraw(symbolKey) {
@@ -125,7 +139,7 @@
 
         function saveImage() {
             var canvas = document.getElementById('myCanvas');
-            var imageData = canvas.toDataURL();
+            var imageData = canvas.toDataURL('image/png'); // Same format as predict.html
             
             // Check if canvas is empty
             var isCanvasEmpty = !canvas.getContext('2d')
