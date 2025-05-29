@@ -1,8 +1,8 @@
 {
   "random_forest": {
-    "last_trained": "2025-05-28T14:03:38.758040",
-    "accuracy": 0.6666666666666666,
-    "training_count": 5
+    "last_trained": "2025-05-28T19:30:25.897347",
+    "accuracy": 0.8666666666666667,
+    "training_count": 6
   },
   "svm": {
     "last_trained": "2025-05-28T14:03:44.172633",
