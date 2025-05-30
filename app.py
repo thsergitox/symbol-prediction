@@ -301,7 +301,6 @@ def predict_page():
                          all_models_info=all_models_info,
                          message=message)
 
-# --- New API Routes for Model Management ---
 
 @app.route("/api/models", methods=['GET'])
 def api_get_models():

@@ -11,6 +11,24 @@ import os
 from datetime import datetime
 from skimage import transform, filters, feature
 from scipy import ndimage
+import tempfile
+import cv2
+
+# TensorFlow and Keras imports for real CNN
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    from tensorflow.keras import layers
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
+    from tensorflow.keras.optimizers import Adam
+    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+    from tensorflow.keras.utils import to_categorical
+    TENSORFLOW_AVAILABLE = True
+    print(f"[CNN] TensorFlow version: {tf.__version__} - GPU available: {tf.config.list_physical_devices('GPU')}")
+except ImportError as e:
+    print(f"[CNN] TensorFlow not available: {e}. CNN will use simplified fallback.")
+    TENSORFLOW_AVAILABLE = False
 
 # ============================================================================
 # ABSTRACTIONS (Dependency Inversion Principle)
@@ -143,6 +161,80 @@ class StandardImagePreprocessor(DataPreprocessorInterface):
         # Convert to numpy array - all images should now have the same shape
         result = np.array(processed_images)
         print(f"[PREPROCESSOR] Processed {len(processed_images)} images to shape {result.shape}")
+        
+        return result
+
+class CNNImagePreprocessor(DataPreprocessorInterface):
+    """
+    CNN-specific image preprocessing implementation
+    """
+    
+    def __init__(self, target_size: Tuple[int, int] = (64, 64)):
+        self.target_size = target_size
+    
+    def preprocess_image(self, image: np.ndarray) -> np.ndarray:
+        """Preprocess a single image for CNN (returns with channel dimension)"""
+        if image is None or image.size == 0:
+            raise ValueError("Empty or invalid image")
+        
+        current_image_data: np.ndarray
+
+        if image.ndim == 3 and image.shape[2] == 4:  # RGBA
+            gray_image = np.dot(image[:, :, :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+            current_image_data = 255 - gray_image
+        elif image.ndim == 3 and image.shape[2] == 3:  # RGB
+            gray_image = np.dot(image[:, :, :3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+            current_image_data = 255 - gray_image
+        elif image.ndim == 2:  # Already grayscale
+            if np.mean(image) > 128: 
+                current_image_data = 255 - image.astype(np.uint8)
+            else:
+                current_image_data = image.astype(np.uint8)
+        else:
+            raise ValueError(f"Unsupported image format: shape {image.shape}")
+        
+        # Resize image
+        try:
+            image_resized = cv2.resize(current_image_data, self.target_size, interpolation=cv2.INTER_AREA)
+        except Exception as e:
+            try:
+                # Fallback to skimage
+                image_resized = transform.resize(
+                    current_image_data, self.target_size,
+                    anti_aliasing=True, preserve_range=True
+                ).astype(np.uint8)
+            except Exception as e2:
+                raise ValueError(f"Error resizing image: {e}, fallback error: {e2}")
+        
+        # Normalize to [0, 1] and add channel dimension
+        image_normalized = image_resized.astype(np.float32) / 255.0
+        
+        # Add channel dimension for CNN (H, W, 1)
+        if image_normalized.ndim == 2:
+            image_normalized = np.expand_dims(image_normalized, axis=-1)
+        
+        return image_normalized
+    
+    def preprocess_dataset(self, images: List[np.ndarray]) -> np.ndarray:
+        """Preprocess dataset for CNN (returns 4D array N, H, W, C)"""
+        if not images:
+            raise ValueError("Empty image list")
+        
+        processed_images = []
+        for i, img in enumerate(images):
+            try:
+                processed_img = self.preprocess_image(img)
+                processed_images.append(processed_img)
+            except Exception as e:
+                print(f"[CNN_PREPROCESSOR] Error processing image {i}: {e}")
+                continue
+        
+        if not processed_images:
+            raise ValueError("No images were successfully processed")
+        
+        # Convert to numpy array
+        result = np.array(processed_images)
+        print(f"[CNN_PREPROCESSOR] Processed {len(processed_images)} images to shape {result.shape}")
         
         return result
 
@@ -493,301 +585,405 @@ class NeuralNetworkModel(ModelInterface):
 
 class ConvolutionalNeuralNetwork(ModelInterface):
     """
-    CNN-like implementation using traditional image processing and deep neural networks
-    Simulates convolutional operations using scipy filters and feature extraction
+    Real CNN implementation using TensorFlow/Keras
+    Implements actual convolutional neural networks for image classification
     """
     
-    def __init__(self, symbols_display: Dict[str, str], preprocessor: DataPreprocessorInterface):
-        # Simpler network more appropriate for small datasets
-        self.model = MLPClassifier(
-            hidden_layer_sizes=(32, 16),  # Much simpler: only 2 layers instead of 4
-            max_iter=1000,  # Reduced iterations to prevent overfitting
-            random_state=42,
-            early_stopping=True,  
-            validation_fraction=0.2,
-            alpha=0.1,  # Higher regularization to prevent overfitting
-            solver='lbfgs',  # Better for small datasets than adam
-            learning_rate_init=0.01
-        )
+    def __init__(self, symbols_display: Dict[str, str], preprocessor: DataPreprocessorInterface = None):
+        if not TENSORFLOW_AVAILABLE:
+            raise ImportError("TensorFlow not available. Cannot create CNN model.")
+        
         self.symbols_display = symbols_display
-        self.preprocessor = preprocessor
+        self.preprocessor = preprocessor if preprocessor else CNNImagePreprocessor()
+        self.model = None
+        self.history = None
         self.is_trained = False
         self.training_accuracy = 0.0
+        self.input_shape = self.preprocessor.target_size + (1,)  # (H, W, C)
+        self.num_classes = len(symbols_display)
         
-        # Simpler convolutional filters for small datasets
-        self.conv_filters = self._create_simple_filters()
+        # Training configuration
+        self.epochs = 50
+        self.batch_size = 16  # Smaller batch size for small datasets
+        self.patience = 10
         
-    def _create_simple_filters(self):
-        """Create simpler convolutional filters for small datasets"""
-        filters = {
-            'horizontal_edge': np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]),
-            'vertical_edge': np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]]),
-            'diagonal_edge_1': np.array([[-1, -1, 0], [-1, 0, 1], [0, 1, 1]]),
-            'diagonal_edge_2': np.array([[0, -1, -1], [1, 0, -1], [1, 1, 0]]),
-            
-            'corner_tl': np.array([[1, 1, 0], [1, 0, -1], [0, -1, -1]]),
-            'corner_tr': np.array([[0, 1, 1], [-1, 0, 1], [-1, -1, 0]]),
-            'corner_bl': np.array([[0, -1, -1], [1, 0, -1], [1, 1, 0]]),
-            'corner_br': np.array([[-1, -1, 0], [-1, 0, 1], [0, 1, 1]]),
-            
-            'thick_horizontal': np.array([[-1, -1, -1], [2, 2, 2], [-1, -1, -1]]),
-            'thick_vertical': np.array([[-1, 2, -1], [-1, 2, -1], [-1, 2, -1]]),
-            
-            'curve_1': np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]]),
-            'curve_2': np.array([[1, 0, 1], [0, 0, 0], [1, 0, 1]])
-        }
-        return filters
+        # Normalization parameters (stored for prediction)
+        self.feature_means = None
+        self.feature_stds = None
+        
+        print(f"[CNN] Initialized with input shape: {self.input_shape}, num classes: {self.num_classes}")
     
-    def _extract_conv_features(self, image: np.ndarray) -> np.ndarray:
-        """Extract simplified features more suitable for small datasets"""
-        features = []
+    def _create_cnn_model(self, architecture='intermediate'):
+        """Create CNN model based on the notebook architecture"""
         
-        # Ensure image is float64 for consistent calculations
-        image = image.astype(np.float64)
-        
-        # Apply only the most important filters and extract key statistics
-        key_filters = ['horizontal_edge', 'vertical_edge', 'corner_tl', 'corner_tr']
-        for filter_name in key_filters:
-            if filter_name in self.conv_filters:
-                kernel = self.conv_filters[filter_name]
-                filtered = ndimage.convolve(image, kernel, mode='constant')
-                
-                if filtered.size > 0:
-                    features.extend([
-                        float(np.mean(filtered)),           # Average response
-                        float(np.std(filtered)),            # Standard deviation  
-                        float(np.mean(np.abs(filtered))),   # Mean absolute response
-                    ])
-                else:
-                    features.extend([0.0, 0.0, 0.0])
-        
-        # Essential image statistics
-        if image.size > 0:
-            img_mean = float(np.mean(image))
-            features.extend([
-                img_mean,
-                float(np.std(image)),
-                float(np.sum(image > img_mean)) / image.size,  # Fraction above average
+        if architecture == 'basic':
+            model = Sequential([
+                # First convolutional block
+                Conv2D(32, (3, 3), activation='relu', input_shape=self.input_shape),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+
+                # Second convolutional block
+                Conv2D(64, (3, 3), activation='relu'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+
+                # Third convolutional block
+                Conv2D(128, (3, 3), activation='relu'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+
+                # Dense layers
+                Flatten(),
+                Dense(128, activation='relu'),
+                Dropout(0.5),
+                Dense(64, activation='relu'),
+                Dropout(0.3),
+                Dense(self.num_classes, activation='softmax')
             ])
-        else:
-            features.extend([0.0, 0.0, 0.0])
-        
-        # Basic edge detection (simplified)
-        try:
-            sobel_h = filters.sobel_h(image)
-            sobel_v = filters.sobel_v(image)
-            if sobel_h.size > 0 and sobel_v.size > 0:
-                edge_magnitude = np.sqrt(sobel_h**2 + sobel_v**2)
-                features.extend([
-                    float(np.mean(edge_magnitude)),
-                    float(np.std(edge_magnitude)),
-                ])
-            else:
-                features.extend([0.0, 0.0])
-        except Exception as e:
-            print(f"[CNN_FEATURE] Error in edge detection: {e}")
-            features.extend([0.0, 0.0])
-        
-        # Simplified spatial features (2x2 grid instead of complex analysis)
-        try:
-            h, w = image.shape
-            quadrants = [
-                image[:h//2, :w//2],      # Top-left
-                image[:h//2, w//2:],      # Top-right  
-                image[h//2:, :w//2],      # Bottom-left
-                image[h//2:, w//2:]       # Bottom-right
-            ]
             
-            for quad in quadrants:
-                if quad.size > 0:
-                    features.append(float(np.mean(quad)))
-                else:
-                    features.append(0.0)
-        except Exception as e:
-            print(f"[CNN_FEATURE] Error in spatial features: {e}")
-            features.extend([0.0, 0.0, 0.0, 0.0])
+        elif architecture == 'intermediate':
+            model = Sequential([
+                # First block
+                Conv2D(32, (3, 3), activation='relu', input_shape=self.input_shape),
+                Conv2D(32, (3, 3), activation='relu'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.25),
+
+                # Second block
+                Conv2D(64, (3, 3), activation='relu'),
+                Conv2D(64, (3, 3), activation='relu'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.25),
+
+                # Third block
+                Conv2D(128, (3, 3), activation='relu'),
+                Conv2D(128, (3, 3), activation='relu'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.25),
+
+                # Dense layers
+                Flatten(),
+                Dense(256, activation='relu'),
+                BatchNormalization(),
+                Dropout(0.5),
+                Dense(128, activation='relu'),
+                Dropout(0.3),
+                Dense(self.num_classes, activation='softmax')
+            ])
+            
+        else:  # advanced
+            model = Sequential([
+                # First block
+                Conv2D(32, (3, 3), activation='relu', input_shape=self.input_shape, padding='same'),
+                Conv2D(32, (3, 3), activation='relu', padding='same'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.2),
+
+                # Second block
+                Conv2D(64, (3, 3), activation='relu', padding='same'),
+                Conv2D(64, (3, 3), activation='relu', padding='same'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.2),
+
+                # Third block
+                Conv2D(128, (3, 3), activation='relu', padding='same'),
+                Conv2D(128, (3, 3), activation='relu', padding='same'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.3),
+
+                # Fourth block
+                Conv2D(256, (3, 3), activation='relu', padding='same'),
+                Conv2D(256, (3, 3), activation='relu', padding='same'),
+                BatchNormalization(),
+                MaxPooling2D((2, 2)),
+                Dropout(0.3),
+
+                # Dense layers
+                Flatten(),
+                Dense(512, activation='relu'),
+                BatchNormalization(),
+                Dropout(0.5),
+                Dense(256, activation='relu'),
+                BatchNormalization(),
+                Dropout(0.4),
+                Dense(128, activation='relu'),
+                Dropout(0.3),
+                Dense(self.num_classes, activation='softmax')
+            ])
         
-        # Convert to numpy array and ensure no NaN/inf values
-        features_array = np.array(features, dtype=np.float64)
-        features_array = np.nan_to_num(features_array, nan=0.0, posinf=1.0, neginf=-1.0)
+        # Compile model
+        model.compile(
+            optimizer=Adam(learning_rate=0.001),
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
+        )
         
-        print(f"[CNN_FEATURE] Extracted {len(features_array)} features")
-        return features_array
+        return model
     
     def train(self, X: List[np.ndarray], y: np.ndarray) -> float:
-        print(f"[CNN_TRAIN] Starting CNN-like training with {len(X)} images")
+        """Train the CNN model"""
+        print(f"[CNN_TRAIN] Starting CNN training with {len(X)} images")
         
-        # Preprocess images
-        X_processed = self.preprocessor.preprocess_dataset(X)
-        print(f"[CNN_TRAIN] Preprocessed shape: {X_processed.shape}")
-        
-        # Extract CNN-like features for each image
-        X_features = []
-        for i, img in enumerate(X_processed):
-            features = self._extract_conv_features(img)
-            # Ensure features are float64 and clean
-            features = np.array(features, dtype=np.float64)
-            features = np.nan_to_num(features, nan=0.0, posinf=1.0, neginf=-1.0)
-            X_features.append(features)
-            if i % 10 == 0:
-                print(f"[CNN_TRAIN] Extracted features for image {i+1}/{len(X_processed)}")
-        
-        # Convert to proper numpy array with consistent dtype
-        X_features = np.vstack(X_features).astype(np.float64)
-        print(f"[CNN_TRAIN] Feature matrix shape: {X_features.shape}, dtype: {X_features.dtype}")
-        
-        # Final cleanup of features - ensure no NaN or inf values
-        X_features = np.nan_to_num(X_features, nan=0.0, posinf=1.0, neginf=-1.0)
-        
-        # Check for and handle any remaining problematic values
-        if not np.isfinite(X_features).all():
-            print(f"[CNN_TRAIN] Warning: Non-finite values detected, cleaning...")
-            X_features = np.where(np.isfinite(X_features), X_features, 0.0)
-        
-        # Robust normalization with explicit dtype handling
         try:
-            feature_means = np.mean(X_features, axis=0, dtype=np.float64)
-            feature_stds = np.std(X_features, axis=0, dtype=np.float64)
+            # Preprocess data for CNN
+            X_processed = self.preprocessor.preprocess_dataset(X)
+            print(f"[CNN_TRAIN] X_processed shape: {X_processed.shape}, dtype: {X_processed.dtype}")
+            print(f"[CNN_TRAIN] Data range: [{X_processed.min():.3f}, {X_processed.max():.3f}]")
             
-            # Prevent division by zero with proper epsilon
-            feature_stds = np.where(feature_stds < 1e-8, 1.0, feature_stds)
+            # Convert labels to categorical
+            unique_labels = sorted(list(set(y)))
+            label_to_idx = {label: idx for idx, label in enumerate(unique_labels)}
+            y_numeric = np.array([label_to_idx[label] for label in y])
+            y_categorical = to_categorical(y_numeric, num_classes=self.num_classes)
             
-            X_features = (X_features - feature_means) / feature_stds
-            X_features = X_features.astype(np.float64)  # Ensure consistent dtype
+            print(f"[CNN_TRAIN] Labels shape: {y_categorical.shape}")
+            print(f"[CNN_TRAIN] Unique classes: {unique_labels}")
+            print(f"[CNN_TRAIN] Label mapping: {label_to_idx}")
             
-            print(f"[CNN_TRAIN] Normalized features - shape: {X_features.shape}, range: [{X_features.min():.3f}, {X_features.max():.3f}]")
-        except Exception as e:
-            print(f"[CNN_TRAIN] Normalization error: {e}, using raw features")
-            X_features = X_features.astype(np.float64)
-        
-        # Ensure labels are proper strings (not numpy string types that can cause issues)
-        y_clean = np.array([str(label) for label in y], dtype='U50')  # Unicode string with max 50 chars
-        print(f"[CNN_TRAIN] Label types: {type(y_clean[0])}, unique labels: {np.unique(y_clean)}")
-        
-        # Train the deep neural network with proper error handling
-        unique_classes = np.unique(y_clean)
-        if len(X_features) < 15 or len(unique_classes) < 2:
-            print(f"[CNN_TRAIN] Small dataset, fitting directly")
-            try:
-                self.model.fit(X_features, y_clean)
-                # Calculate training accuracy safely
-                y_pred_train = self.model.predict(X_features)
-                self.training_accuracy = accuracy_score(y_clean, y_pred_train)
-            except Exception as e:
-                print(f"[CNN_TRAIN] Training error: {e}")
-                self.training_accuracy = 0.0
-        else:
-            print(f"[CNN_TRAIN] Using train/test split for CNN")
-            try:
-                # Ensure stratify works with clean labels
-                X_train, X_test, y_train, y_test = train_test_split(
-                    X_features, y_clean, test_size=0.25, random_state=42, stratify=y_clean
+            # Handle small datasets
+            n_samples = X_processed.shape[0]
+            if n_samples < 10 or len(unique_labels) < 2:
+                print(f"[CNN_TRAIN] Small dataset ({n_samples} samples, {len(unique_labels)} classes)")
+                # Use simpler architecture and training for small datasets
+                self.model = self._create_cnn_model('basic')
+                self.epochs = min(20, self.epochs)
+                self.batch_size = min(8, n_samples)
+                
+                # Train on full dataset
+                history = self.model.fit(
+                    X_processed, y_categorical,
+                    batch_size=self.batch_size,
+                    epochs=self.epochs,
+                    verbose=1
                 )
-                print(f"[CNN_TRAIN] Training deep network - Train: {X_train.shape}, Test: {X_test.shape}")
                 
-                # Fit with clean data types
-                self.model.fit(X_train, y_train)
-                y_pred = self.model.predict(X_test)
-                self.training_accuracy = accuracy_score(y_test, y_pred)
-                print(f"[CNN_TRAIN] CNN achieved {self.training_accuracy:.4f} accuracy")
+                # Evaluate on training data
+                train_loss, train_acc = self.model.evaluate(X_processed, y_categorical, verbose=0)
+                self.training_accuracy = train_acc
                 
-            except Exception as e:
-                print(f"[CNN_TRAIN] Split/train failed: {e}, using full dataset")
-                try:
-                    self.model.fit(X_features, y_clean)
-                    # Calculate training accuracy on full dataset
-                    y_pred_train = self.model.predict(X_features)
-                    self.training_accuracy = accuracy_score(y_clean, y_pred_train)
-                    print(f"[CNN_TRAIN] Fallback training accuracy: {self.training_accuracy:.4f}")
-                except Exception as e2:
-                    print(f"[CNN_TRAIN] Fallback training also failed: {e2}")
-                    self.training_accuracy = 0.0
-        
-        self.is_trained = True
-        print(f"[CNN_TRAIN] CNN training completed with accuracy: {self.training_accuracy}")
-        return self.training_accuracy
+            else:
+                print(f"[CNN_TRAIN] Standard training with {n_samples} samples")
+                
+                # Create model
+                self.model = self._create_cnn_model('intermediate')
+                
+                # Split data for validation
+                from sklearn.model_selection import train_test_split
+                X_train, X_val, y_train, y_val = train_test_split(
+                    X_processed, y_categorical, 
+                    test_size=0.2, 
+                    random_state=42, 
+                    stratify=y_numeric
+                )
+                
+                print(f"[CNN_TRAIN] Training split: {X_train.shape[0]} train, {X_val.shape[0]} val")
+                
+                # Setup callbacks
+                callbacks = [
+                    EarlyStopping(
+                        monitor='val_loss',
+                        patience=self.patience,
+                        restore_best_weights=True,
+                        verbose=1
+                    ),
+                    ReduceLROnPlateau(
+                        monitor='val_loss',
+                        factor=0.5,
+                        patience=5,
+                        min_lr=1e-7,
+                        verbose=1
+                    )
+                ]
+                
+                # Train model
+                history = self.model.fit(
+                    X_train, y_train,
+                    batch_size=self.batch_size,
+                    epochs=self.epochs,
+                    validation_data=(X_val, y_val),
+                    callbacks=callbacks,
+                    verbose=1
+                )
+                
+                # Final evaluation
+                val_loss, val_acc = self.model.evaluate(X_val, y_val, verbose=0)
+                self.training_accuracy = val_acc
+            
+            self.history = history
+            self.is_trained = True
+            
+            # Store label mapping for prediction
+            self.label_mapping = {idx: label for label, idx in label_to_idx.items()}
+            
+            print(f"[CNN_TRAIN] Training completed with accuracy: {self.training_accuracy:.4f}")
+            return self.training_accuracy
+            
+        except Exception as e:
+            print(f"[CNN_TRAIN] Error during training: {e}")
+            import traceback
+            print(f"[CNN_TRAIN] Full traceback: {traceback.format_exc()}")
+            self.training_accuracy = 0.0
+            return 0.0
     
     def predict(self, X: np.ndarray) -> Tuple[str, float, Dict[str, Any]]:
-        if not self.is_trained:
+        """Predict using the trained CNN"""
+        if not self.is_trained or self.model is None:
             raise ValueError("CNN model must be trained before prediction")
         
-        # FIXED: Always use preprocess_image for single predictions
-        X_processed = self.preprocessor.preprocess_image(X)
-        
-        # Extract CNN-like features
-        features = self._extract_conv_features(X_processed)
-        features = features.reshape(1, -1)
-        
-        # Handle any potential NaN or inf values
-        features = np.nan_to_num(features, nan=0.0, posinf=1.0, neginf=-1.0)
-        
-        # Simple normalization for prediction (we don't have training statistics stored)
-        # This is a simplified approach - ideally we'd store the training normalization parameters
-        feature_mean = np.mean(features)
-        feature_std = np.std(features)
-        if feature_std > 0:
-            features = (features - feature_mean) / feature_std
-        
-        print(f"[CNN_PREDICT] Features shape: {features.shape}, range: [{features.min():.3f}, {features.max():.3f}]")
-        
-        # Predict using deep network
-        prediction_proba = self.model.predict_proba(features)[0]
-        predicted_class_idx = np.argmax(prediction_proba)
-        predicted_symbol_name = self.model.classes_[predicted_class_idx]
-        confidence = prediction_proba[predicted_class_idx]
-        
-        all_predictions = {}
-        for i, class_name in enumerate(self.model.classes_):
-            all_predictions[str(class_name)] = {  # Ensure string key
-                'symbol': self.symbols_display.get(str(class_name), str(class_name)),
-                'probability': float(prediction_proba[i])
-            }
-        
-        return (self.symbols_display.get(str(predicted_symbol_name), str(predicted_symbol_name)), 
-                float(confidence), all_predictions)
+        try:
+            # Preprocess single image
+            X_processed = self.preprocessor.preprocess_image(X)
+            print(f"[CNN_PREDICT] Preprocessed shape: {X_processed.shape}, range: [{X_processed.min():.3f}, {X_processed.max():.3f}]")
+            
+            # Add batch dimension
+            X_batch = np.expand_dims(X_processed, axis=0)
+            print(f"[CNN_PREDICT] Batch shape: {X_batch.shape}")
+            
+            # Make prediction
+            predictions = self.model.predict(X_batch, verbose=0)
+            pred_proba = predictions[0]
+            
+            print(f"[CNN_PREDICT] Raw predictions: {pred_proba}")
+            
+            # Get predicted class
+            predicted_class_idx = np.argmax(pred_proba)
+            predicted_symbol_name = self.label_mapping.get(predicted_class_idx, f"class_{predicted_class_idx}")
+            confidence = float(pred_proba[predicted_class_idx])
+            
+            print(f"[CNN_PREDICT] Predicted class idx: {predicted_class_idx}")
+            print(f"[CNN_PREDICT] Predicted symbol: {predicted_symbol_name}")
+            print(f"[CNN_PREDICT] Confidence: {confidence}")
+            
+            # Build all predictions dict
+            all_predictions = {}
+            for class_idx, prob in enumerate(pred_proba):
+                class_name = self.label_mapping.get(class_idx, f"class_{class_idx}")
+                all_predictions[class_name] = {
+                    'symbol': self.symbols_display.get(class_name, class_name),
+                    'probability': float(prob)
+                }
+            
+            predicted_display = self.symbols_display.get(predicted_symbol_name, predicted_symbol_name)
+            
+            return predicted_display, confidence, all_predictions
+            
+        except Exception as e:
+            print(f"[CNN_PREDICT] Error during prediction: {e}")
+            import traceback
+            print(f"[CNN_PREDICT] Full traceback: {traceback.format_exc()}")
+            return f"Error during prediction: {e}", None, None
     
     def save_model(self, path: str) -> None:
-        if not self.is_trained:
+        """Save the trained CNN model"""
+        if not self.is_trained or self.model is None:
             raise ValueError("Cannot save untrained CNN model")
         
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        model_data = {
-            'model': self.model,
-            'symbols_display': self.symbols_display,
-            'training_accuracy': self.training_accuracy,
-            'preprocessor_config': {'target_size': self.preprocessor.target_size},
-            'conv_filters': self.conv_filters
-        }
-        joblib.dump(model_data, path)
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            
+            # Save TensorFlow model
+            model_h5_path = path.replace('.pkl', '.h5')
+            self.model.save(model_h5_path)
+            
+            # Save additional model data
+            model_data = {
+                'symbols_display': self.symbols_display,
+                'training_accuracy': self.training_accuracy,
+                'input_shape': self.input_shape,
+                'num_classes': self.num_classes,
+                'label_mapping': getattr(self, 'label_mapping', {}),
+                'preprocessor_config': {
+                    'target_size': self.preprocessor.target_size,
+                    'type': type(self.preprocessor).__name__
+                },
+                'model_h5_path': model_h5_path,
+                'epochs': self.epochs,
+                'batch_size': self.batch_size
+            }
+            
+            joblib.dump(model_data, path)
+            print(f"[CNN_SAVE] Saved CNN model to {path} and {model_h5_path}")
+            
+        except Exception as e:
+            print(f"[CNN_SAVE] Error saving CNN model: {e}")
+            raise
     
     def load_model(self, path: str) -> bool:
+        """Load a trained CNN model"""
         try:
             if not os.path.exists(path):
+                print(f"[CNN_LOAD] Model file not found: {path}")
                 return False
             
+            # Load model data
             model_data = joblib.load(path)
-            self.model = model_data['model']
+            
+            # Load TensorFlow model
+            model_h5_path = model_data.get('model_h5_path', path.replace('.pkl', '.h5'))
+            if not os.path.exists(model_h5_path):
+                print(f"[CNN_LOAD] TensorFlow model file not found: {model_h5_path}")
+                return False
+            
+            # Load Keras model
+            self.model = keras.models.load_model(model_h5_path)
+            
+            # Restore other attributes
             self.symbols_display = model_data['symbols_display']
             self.training_accuracy = model_data.get('training_accuracy', 0.0)
-            self.conv_filters = model_data.get('conv_filters', self._create_simple_filters())
+            self.input_shape = model_data.get('input_shape', (64, 64, 1))
+            self.num_classes = model_data.get('num_classes', len(self.symbols_display))
+            self.label_mapping = model_data.get('label_mapping', {})
+            self.epochs = model_data.get('epochs', 50)
+            self.batch_size = model_data.get('batch_size', 16)
+            
+            # Update preprocessor if needed
+            preprocessor_config = model_data.get('preprocessor_config', {})
+            if preprocessor_config.get('type') == 'CNNImagePreprocessor':
+                target_size = preprocessor_config.get('target_size', (64, 64))
+                self.preprocessor = CNNImagePreprocessor(target_size)
+            
             self.is_trained = True
+            
+            print(f"[CNN_LOAD] Successfully loaded CNN model from {path}")
+            print(f"[CNN_LOAD] Model info: accuracy={self.training_accuracy:.4f}, classes={self.num_classes}")
+            
             return True
+            
         except Exception as e:
-            print(f"Error loading CNN model: {e}")
+            print(f"[CNN_LOAD] Error loading CNN model: {e}")
+            import traceback
+            print(f"[CNN_LOAD] Full traceback: {traceback.format_exc()}")
             return False
     
     def get_model_info(self) -> Dict[str, Any]:
-        return {
-            'type': 'ConvolutionalNN (Simplified)',
-            'hidden_layer_sizes': self.model.hidden_layer_sizes,
+        """Get CNN model information"""
+        info = {
+            'type': 'ConvolutionalNeuralNetwork (TensorFlow/Keras)',
             'is_trained': self.is_trained,
             'training_accuracy': self.training_accuracy,
-            'classes': list(self.model.classes_) if self.is_trained else [],
-            'preprocessing': 'StandardImagePreprocessor + SimplifiedConvFeatures',
-            'num_filters': len(self.conv_filters),
-            'solver': self.model.solver,
-            'optimization': 'Designed for small datasets'
+            'input_shape': self.input_shape,
+            'num_classes': self.num_classes,
+            'preprocessing': type(self.preprocessor).__name__,
+            'epochs': self.epochs,
+            'batch_size': self.batch_size,
+            'tensorflow_version': tf.__version__ if TENSORFLOW_AVAILABLE else 'Not available'
         }
+        
+        if self.is_trained and self.model:
+            info.update({
+                'total_params': self.model.count_params(),
+                'classes': list(self.label_mapping.values()) if hasattr(self, 'label_mapping') else [],
+                'architecture': 'Real CNN with Conv2D layers'
+            })
+        
+        return info
 
 # ============================================================================
 # FACTORY PATTERN (Open/Closed Principle)

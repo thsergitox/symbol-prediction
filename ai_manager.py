@@ -8,7 +8,7 @@ import numpy as np
 
 # Import the new architecture
 from ai_architectures import (
-    ModelInterface, DataPreprocessorInterface, StandardImagePreprocessor,
+    ModelInterface, DataPreprocessorInterface, StandardImagePreprocessor, CNNImagePreprocessor,
     ModelFactory, AIService
 )
 
@@ -71,10 +71,18 @@ class ModelManager:
     def _initialize_current_model(self):
         """Initialize the AI service with the current model"""
         try:
+            # Choose appropriate preprocessor based on model type
+            if self.current_model_type == 'cnn':
+                preprocessor = CNNImagePreprocessor()
+                print(f"[MODEL_MANAGER] Using CNNImagePreprocessor for CNN model")
+            else:
+                preprocessor = self.preprocessor  # Use the standard preprocessor
+                print(f"[MODEL_MANAGER] Using StandardImagePreprocessor for {self.current_model_type} model")
+            
             model = ModelFactory.create_model(
                 self.current_model_type,
                 SYMBOLS_DISPLAY,
-                self.preprocessor
+                preprocessor
             )
             self.ai_service = AIService(model)
             
@@ -91,6 +99,8 @@ class ModelManager:
                 
         except Exception as e:
             print(f"[MODEL_MANAGER] Error initializing current model: {e}")
+            import traceback
+            print(f"[MODEL_MANAGER] Full traceback: {traceback.format_exc()}")
     
     def get_model_path(self, model_type: str) -> str:
         """Get the file path for a specific model type"""
@@ -153,7 +163,13 @@ class ModelManager:
             # If model exists, try to get more detailed info
             if model_exists:
                 try:
-                    temp_model = ModelFactory.create_model(model_type, SYMBOLS_DISPLAY, self.preprocessor)
+                    # Use appropriate preprocessor for each model type
+                    if model_type == 'cnn':
+                        temp_preprocessor = CNNImagePreprocessor()
+                    else:
+                        temp_preprocessor = self.preprocessor
+                    
+                    temp_model = ModelFactory.create_model(model_type, SYMBOLS_DISPLAY, temp_preprocessor)
                     if temp_model.load_model(model_path):
                         detailed_info = temp_model.get_model_info()
                         model_info.update(detailed_info)

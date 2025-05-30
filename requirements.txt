@@ -5,3 +5,11 @@ scikit-learn
 joblib 
 gunicorn
 typing-extensions
+# Note: TensorFlow may not be available for Python 3.13 yet
+# Use Python 3.11 or 3.12 for better compatibility
+# tensorflow>=2.10.0,<2.16.0
+# keras>=2.10.0
+matplotlib
+seaborn
+opencv-python-headless
+pandas

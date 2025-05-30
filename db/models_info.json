@@ -15,8 +15,8 @@
     "training_count": 7
   },
   "cnn": {
-    "last_trained": "2025-05-28T23:55:17.738509",
-    "accuracy": 0.9472295514511874,
-    "training_count": 9
+    "last_trained": "2025-05-30T12:19:48.450298",
+    "accuracy": 0.9276485788113695,
+    "training_count": 10
   }
 }

@@ -9,10 +9,11 @@ Esta aplicación web permite crear datasets, entrenar modelos de machine learnin
 ## ⭐ Características Principales
 
 ### 🔄 **Arquitectura Multi-Modelo SOLID**
-- **3 Algoritmos de IA** disponibles:
+- **4 Algoritmos de IA** disponibles:
   - **Random Forest**: Robusto y eficiente para datasets pequeños
   - **Support Vector Machine (SVM)**: Excelente para patrones complejos  
   - **Red Neuronal (MLP)**: Mejor para datasets grandes y patrones complejos
+  - **🆕 Red Neuronal Convolucional (CNN)**: Arquitectura profunda con TensorFlow/Keras para reconocimiento de imágenes avanzado
 
 ### 🎨 **Interfaz de Usuario Moderna**
 - **Predicción en Tiempo Real**: Sin recargas de página usando AJAX
@@ -36,6 +37,45 @@ Esta aplicación web permite crear datasets, entrenar modelos de machine learnin
 - ✅ **Interface Segregation**: Interfaces específicas para cada funcionalidad
 - ✅ **Dependency Inversion**: Depende de abstracciones, no implementaciones
 
+### 🧠 **Nueva Implementación CNN con TensorFlow/Keras** ✨
+
+La versión más reciente incluye una **implementación completa de Red Neuronal Convolucional** usando TensorFlow/Keras:
+
+#### **Características CNN:**
+- **🏗️ Arquitecturas Reales**: Capas Conv2D, MaxPooling2D, BatchNormalization y Dropout
+- **📐 Tres Niveles de Complejidad**:
+  - **Básica**: 3 bloques convolucionales para datasets pequeños
+  - **Intermedia**: 3 bloques dobles con regularización avanzada
+  - **Avanzada**: 4 bloques con arquitectura profunda optimizada
+- **⚡ Entrenamiento Inteligente**: 
+  - Early Stopping y ReduceLROnPlateau callbacks
+  - Adaptación automática según tamaño del dataset
+  - Validación estratificada para datasets grandes
+- **🔧 Preprocesamiento Especializado**: 
+  - `CNNImagePreprocessor` optimizado para redes convolucionales
+  - Normalización automática y redimensionamiento inteligente
+  - Manejo de diferentes formatos de imagen (RGBA, RGB, Grayscale)
+
+#### **Ventajas de la CNN:**
+- **🎯 Mayor Precisión**: Arquitectura especializada en reconocimiento de imágenes
+- **🔍 Extracción Automática**: Las capas convolucionales aprenden features automáticamente
+- **📈 Escalabilidad**: Mejor rendimiento con datasets grandes
+- **🔄 Transferible**: Arquitectura basada en notebook de investigación real
+
+#### **Requisitos CNN:**
+```bash
+# Dependencias adicionales para CNN
+pip install tensorflow>=2.10.0 keras>=2.10.0 opencv-python-headless
+```
+
+#### **Prueba Rápida CNN:**
+```bash
+# Ejecutar script de prueba
+python test_cnn.py
+```
+
+### 🔧 **Arquitectura SOLID**
+
 ## 🚀 Instalación y Configuración
 
 ### Prerrequisitos
@@ -58,7 +98,14 @@ source .venv/bin/activate  # Linux/Mac
 
 ### 3. Instalar dependencias
 ```bash
+# Instalación básica (Random Forest, SVM, Neural Network)
 pip install -r requirements.txt
+
+# 🆕 Para usar CNN con TensorFlow/Keras (recomendado)
+pip install tensorflow>=2.10.0 keras>=2.10.0 opencv-python-headless matplotlib seaborn pandas
+
+# Verificar instalación CNN
+python test_cnn.py
 ```
 
 ### 4. Ejecutar la aplicación
@@ -120,6 +167,7 @@ symbol-prediction/
   - **Random Forest**: Para empezar rápidamente
   - **SVM**: Para mejor precisión con pocos datos
   - **Red Neuronal**: Para datasets más grandes
+  - **🆕 CNN (Convolucional)**: Para máxima precisión en reconocimiento de imágenes
 - Haz clic en "Cambiar a [Modelo]"
 
 ### 3. **Entrenar Modelo**
