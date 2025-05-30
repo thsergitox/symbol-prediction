@@ -802,7 +802,8 @@ class ModelFactory:
         'random_forest': RandomForestModel,
         'svm': SVMModel,
         'neural_network': NeuralNetworkModel,
-        'cnn': ConvolutionalNeuralNetwork
+        'cnn': ConvolutionalNeuralNetwork,
+        'tensorflow_cnn': lambda symbols_display, preprocessor: _get_tensorflow_cnn(symbols_display, preprocessor)
     }
     
     @classmethod
@@ -821,6 +822,23 @@ class ModelFactory:
     def register_model(cls, name: str, model_class: type) -> None:
         """Allow registration of new model types (Open/Closed Principle)"""
         cls._models[name] = model_class
+
+def _get_tensorflow_cnn(symbols_display: Dict[str, str], preprocessor: DataPreprocessorInterface = None) -> ModelInterface:
+    """Helper function to load TensorFlow CNN with proper imports"""
+    try:
+        # First try the real TensorFlow implementation
+        from ai_architectures_tf import TensorFlowCNNWrapper, CNNPreprocessor
+        return TensorFlowCNNWrapper(symbols_display, preprocessor or CNNPreprocessor())
+    except ImportError as e:
+        print(f"[ModelFactory] TensorFlow not available, using simplified CNN implementation")
+        try:
+            # Try the simplified mock version
+            from ai_architectures_tf_simple import TensorFlowCNNWrapper, CNNPreprocessor
+            return TensorFlowCNNWrapper(symbols_display, preprocessor or CNNPreprocessor())
+        except ImportError as e2:
+            print(f"[ModelFactory] Failed to import mock TensorFlow CNN: {e2}")
+            # Fall back to simplified CNN
+            return ConvolutionalNeuralNetwork(symbols_display, preprocessor or StandardImagePreprocessor())
 
 # ============================================================================
 # SERVICE LAYER (Single Responsibility Principle)

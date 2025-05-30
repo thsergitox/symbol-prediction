@@ -1,5 +1,1 @@
-<<<<<<< Updated upstream
-cnn
-=======
-svm
->>>>>>> Stashed changes
+tensorflow_cnn
